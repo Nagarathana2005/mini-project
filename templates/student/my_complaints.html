@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}My Complaints - Hostel Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="fw-bold mb-1 text-primary">My Submitted Complaints</h2>
+        <p class="text-muted mb-0">Track live resolution statuses, staff responses, and history</p>
+    </div>
+    <a href="{% url 'submit_complaint' %}" class="btn btn-primary rounded-pill px-3 shadow-sm">
+        <i class="bi bi-pencil-square me-1"></i> Submit New Complaint
+    </a>
+</div>
+
+<!-- Filter by Status Card -->
+<div class="custom-card p-3 mb-4">
+    <form method="GET" class="d-flex align-items-center gap-2 flex-wrap">
+        <span class="fw-semibold small text-muted">Filter by Status:</span>
+        <a href="{% url 'my_complaints' %}" class="btn btn-sm {% if not selected_status %}btn-primary{% else %}btn-outline-secondary{% endif %} rounded-pill px-3">
+            All ({{ student.complaints.count }})
+        </a>
+        <a href="{% url 'my_complaints' %}?status=Pending" class="btn btn-sm {% if selected_status == 'Pending' %}btn-warning text-dark{% else %}btn-outline-warning text-dark{% endif %} rounded-pill px-3">
+            Pending
+        </a>
+        <a href="{% url 'my_complaints' %}?status=In+Progress" class="btn btn-sm {% if selected_status == 'In Progress' %}btn-info text-dark{% else %}btn-outline-info text-dark{% endif %} rounded-pill px-3">
+            In Progress
+        </a>
+        <a href="{% url 'my_complaints' %}?status=Resolved" class="btn btn-sm {% if selected_status == 'Resolved' %}btn-success{% else %}btn-outline-success{% endif %} rounded-pill px-3">
+            Resolved
+        </a>
+        <a href="{% url 'my_complaints' %}?status=Rejected" class="btn btn-sm {% if selected_status == 'Rejected' %}btn-danger{% else %}btn-outline-danger{% endif %} rounded-pill px-3">
+            Rejected
+        </a>
+    </form>
+</div>
+
+<!-- Complaints List -->
+<div class="custom-card">
+    <div class="table-responsive">
+        <table class="table table-hover table-custom mb-0">
+            <thead>
+                <tr>
+                    <th>Complaint ID</th>
+                    <th>Category</th>
+                    <th>Subject &amp; Details</th>
+                    <th>Date Lodged</th>
+                    <th>Status</th>
+                    <th>Warden Response</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in complaints %}
+                <tr>
+                    <td><strong class="text-secondary">{{ c.complaint_id }}</strong></td>
+                    <td><span class="badge bg-light text-dark border">{{ c.category }}</span></td>
+                    <td>
+                        <div class="fw-semibold text-dark">{{ c.subject }}</div>
+                        <small class="text-muted text-truncate d-inline-block" style="max-width: 250px;">{{ c.description }}</small>
+                    </td>
+                    <td>
+                        <small class="text-muted">{{ c.date|date:"M d, Y" }}</small><br>
+                        <small class="text-muted" style="font-size: 0.75rem;">{{ c.date|time:"H:i" }}</small>
+                    </td>
+                    <td>
+                        {% if c.status == 'Pending' %}
+                            <span class="badge badge-pending px-2 py-1 rounded-pill"><i class="bi bi-clock me-1"></i>Pending</span>
+                        {% elif c.status == 'In Progress' %}
+                            <span class="badge badge-progress px-2 py-1 rounded-pill"><i class="bi bi-arrow-repeat me-1"></i>In Progress</span>
+                        {% elif c.status == 'Resolved' %}
+                            <span class="badge badge-resolved px-2 py-1 rounded-pill"><i class="bi bi-check2 me-1"></i>Resolved</span>
+                        {% else %}
+                            <span class="badge badge-rejected px-2 py-1 rounded-pill"><i class="bi bi-x me-1"></i>Rejected</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if c.admin_response %}
+                            <span class="text-success small fw-semibold">
+                                <i class="bi bi-chat-left-text-fill me-1"></i>{{ c.admin_response|truncatechars:40 }}
+                            </span>
+                        {% else %}
+                            <span class="text-muted small italic">Awaiting response...</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <a href="{% url 'student_complaint_detail' c.pk %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                            View Details
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
+                        No complaints found in this status category.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

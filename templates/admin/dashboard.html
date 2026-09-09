@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - Hostel Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="fw-bold mb-1 text-primary">Hostel Warden &amp; Admin Dashboard</h2>
+        <p class="text-muted mb-0">Overview of hostel occupancy, student records, and maintenance requests</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'student_create' %}" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm">
+            <i class="bi bi-person-plus-fill me-1"></i> Add Student
+        </a>
+        <a href="{% url 'room_create' %}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+            <i class="bi bi-door-open-fill me-1"></i> Add Room
+        </a>
+        <a href="{% url 'hostel_stats' %}" class="btn btn-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-graph-up-arrow me-1"></i> Analytics
+        </a>
+    </div>
+</div>
+
+<!-- Key Stat Cards -->
+<div class="row g-3 mb-4">
+    <!-- Total Students -->
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="stat-card p-3 p-xl-4 border-start border-4 border-primary">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Total Students</span>
+                    <h2 class="fw-bold mb-0 text-dark mt-1">{{ total_students }}</h2>
+                    <small class="text-muted">Registered in hostel</small>
+                </div>
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Rooms -->
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="stat-card p-3 p-xl-4 border-start border-4 border-info">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Total Rooms</span>
+                    <h2 class="fw-bold mb-0 text-dark mt-1">{{ total_rooms }}</h2>
+                    <small class="text-muted">Capacity: {{ total_capacity }} beds</small>
+                </div>
+                <div class="stat-icon bg-info bg-opacity-10 text-info">
+                    <i class="bi bi-door-open-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Available Rooms -->
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="stat-card p-3 p-xl-4 border-start border-4 border-success">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Available Rooms</span>
+                    <h2 class="fw-bold mb-0 text-success mt-1">{{ available_rooms }}</h2>
+                    <small class="text-muted">With vacant bed space</small>
+                </div>
+                <div class="stat-icon bg-success bg-opacity-10 text-success">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Occupied / Full Rooms -->
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="stat-card p-3 p-xl-4 border-start border-4 border-secondary">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Occupied Rooms</span>
+                    <h2 class="fw-bold mb-0 text-dark mt-1">{{ occupied_rooms }}</h2>
+                    <small class="text-muted">Full: {{ full_rooms }} | Maint: {{ maintenance_rooms }}</small>
+                </div>
+                <div class="stat-icon bg-secondary bg-opacity-10 text-secondary">
+                    <i class="bi bi-buildings"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Complaints -->
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="stat-card p-3 p-xl-4 border-start border-4 border-warning">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Pending Complaints</span>
+                    <h2 class="fw-bold mb-0 text-warning mt-1">{{ pending_complaints }}</h2>
+                    <small class="text-muted">In Progress: {{ in_progress_complaints }}</small>
+                </div>
+                <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                    <i class="bi bi-hourglass-split"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resolved Complaints -->
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="stat-card p-3 p-xl-4 border-start border-4 border-success">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Resolved Complaints</span>
+                    <h2 class="fw-bold mb-0 text-success mt-1">{{ resolved_complaints }}</h2>
+                    <small class="text-muted">Total Filed: {{ total_complaints }}</small>
+                </div>
+                <div class="stat-icon bg-success bg-opacity-10 text-success">
+                    <i class="bi bi-clipboard-check-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Overall Occupancy Bar Card -->
+<div class="custom-card p-3 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="fw-semibold text-secondary">Overall Bed Occupancy Rate</span>
+        <span class="fw-bold text-primary">{{ total_occupied_beds }} / {{ total_capacity }} Beds Occupied ({{ overall_occupancy_pct }}%)</span>
+    </div>
+    <div class="progress" style="height: 12px; border-radius: 6px;">
+        <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ overall_occupancy_pct }}%;" aria-valuenow="{{ overall_occupancy_pct }}" aria-valuemin="0" aria-valuemax="100"></div>
+    </div>
+</div>
+
+<!-- Two Column Layout: Recent Complaints & Recent Students -->
+<div class="row g-4">
+    <!-- Recent Complaints Table -->
+    <div class="col-12 col-lg-7">
+        <div class="custom-card h-100">
+            <div class="card-header-custom d-flex justify-content-between align-items-center">
+                <span class="fw-bold"><i class="bi bi-exclamation-circle-fill text-danger me-2"></i>Recent Student Complaints</span>
+                <a href="{% url 'complaint_list' %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-custom mb-0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Student</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in recent_complaints %}
+                        <tr>
+                            <td>
+                                <span class="fw-bold text-secondary">{{ c.complaint_id }}</span>
+                            </td>
+                            <td>
+                                <span class="fw-semibold">{{ c.student.name }}</span><br>
+                                <small class="text-muted">Room {{ c.student.room.room_number|default:"None" }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">{{ c.category }}</span>
+                            </td>
+                            <td>
+                                {% if c.status == 'Pending' %}
+                                    <span class="badge badge-pending px-2 py-1 rounded-pill"><i class="bi bi-clock me-1"></i>Pending</span>
+                                {% elif c.status == 'In Progress' %}
+                                    <span class="badge badge-progress px-2 py-1 rounded-pill"><i class="bi bi-arrow-repeat me-1"></i>In Progress</span>
+                                {% elif c.status == 'Resolved' %}
+                                    <span class="badge badge-resolved px-2 py-1 rounded-pill"><i class="bi bi-check2 me-1"></i>Resolved</span>
+                                {% else %}
+                                    <span class="badge badge-rejected px-2 py-1 rounded-pill"><i class="bi bi-x me-1"></i>Rejected</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'complaint_detail' c.pk %}" class="btn btn-sm btn-outline-primary rounded-pill px-2">
+                                    Manage
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">No complaints recorded yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Students Table -->
+    <div class="col-12 col-lg-5">
+        <div class="custom-card h-100">
+            <div class="card-header-custom d-flex justify-content-between align-items-center">
+                <span class="fw-bold"><i class="bi bi-person-check-fill text-primary me-2"></i>Recently Added Students</span>
+                <a href="{% url 'student_list' %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-custom mb-0">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Name</th>
+                            <th>Room</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in recent_students %}
+                        <tr>
+                            <td><code>{{ s.student_id }}</code></td>
+                            <td>
+                                <span class="fw-semibold">{{ s.name }}</span><br>
+                                <small class="text-muted">{{ s.department }} ({{ s.year }})</small>
+                            </td>
+                            <td>
+                                {% if s.room %}
+                                    <span class="badge badge-available">{{ s.room.room_number }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Unassigned</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'student_detail' s.pk %}" class="btn btn-sm btn-light border rounded-pill px-2">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-4">No students enrolled yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

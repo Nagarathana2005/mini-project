@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}Submit Complaint - Hostel Management System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h2 class="fw-bold mb-0 text-primary">Lodge a Grievance / Complaint</h2>
+                <p class="text-muted mb-0">Submit maintenance requests or hostel facility issues to the warden</p>
+            </div>
+            <a href="{% url 'my_complaints' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                <i class="bi bi-clock-history me-1"></i> Complaint History
+            </a>
+        </div>
+
+        <div class="custom-card shadow-sm mb-4">
+            <div class="card-header-custom bg-white border-bottom py-3">
+                <h4 class="fw-bold mb-0 text-primary">
+                    <i class="bi bi-pencil-square me-2"></i>New Complaint Form
+                </h4>
+            </div>
+
+            <div class="card-body p-4">
+                <!-- Informative student banner -->
+                <div class="p-3 bg-light rounded-3 border mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <small class="text-muted d-block">Submitting as:</small>
+                        <strong class="text-dark">{{ student.name }} ({{ student.student_id }})</strong>
+                    </div>
+                    <div>
+                        <small class="text-muted d-block">Room:</small>
+                        {% if student.room %}
+                            <span class="badge badge-available">Room {{ student.room.room_number }} ({{ student.room.block }})</span>
+                        {% else %}
+                            <span class="badge bg-secondary">No Room Assigned</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ form.non_field_errors }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label for="{{ form.category.id_for_label }}" class="form-label fw-semibold">
+                            Category of Grievance <span class="text-danger">*</span>
+                        </label>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                            <div class="text-danger small mt-1">{{ form.category.errors|first }}</div>
+                        {% endif %}
+                        <div class="form-text">Choose the relevant department for faster resolution.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.subject.id_for_label }}" class="form-label fw-semibold">
+                            Subject / Issue Summary <span class="text-danger">*</span>
+                        </label>
+                        {{ form.subject }}
+                        {% if form.subject.errors %}
+                            <div class="text-danger small mt-1">{{ form.subject.errors|first }}</div>
+                        {% endif %}
+                        <div class="form-text">Briefly describe the problem (e.g., "Fan not working in Room A-101").</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold">
+                            Detailed Description <span class="text-danger">*</span>
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="text-danger small mt-1">{{ form.description.errors|first }}</div>
+                        {% endif %}
+                        <div class="form-text">Include specific details (e.g. location, since when the problem has existed).</div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'student_dashboard' %}" class="btn btn-outline-secondary px-4 rounded-3">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4 rounded-3 fw-bold">
+                            <i class="bi bi-send-fill me-1"></i> Submit Complaint
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Helpful guidelines card -->
+        <div class="custom-card p-3 bg-light border-0">
+            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-info-circle-fill text-primary me-2"></i>Hostel Maintenance Guidelines</h6>
+            <ul class="text-muted small mb-0 ps-3">
+                <li>Electrical and plumbing emergencies are usually attended to within 24 hours.</li>
+                <li>Wi-Fi and internet grievances should specify your room number and device operating system.</li>
+                <li>Once resolved, the warden's remarks and closure notice will appear under <strong>My Complaints</strong>.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block title %}Room {{ room.room_number }} - Hostel Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <a href="{% url 'room_list' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 mb-2">
+            <i class="bi bi-arrow-left me-1"></i> Back to Room List
+        </a>
+        <h2 class="fw-bold mb-0 text-primary">Room {{ room.room_number }}</h2>
+        <span class="text-muted">{{ room.block }} &bull; Floor {{ room.floor }} &bull; {{ room.get_room_type_display }}</span>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'room_edit' room.pk %}" class="btn btn-outline-primary rounded-pill px-3 btn-sm">
+            <i class="bi bi-pencil me-1"></i> Edit Room
+        </a>
+        <a href="{% url 'room_delete' room.pk %}" class="btn btn-outline-danger rounded-pill px-3 btn-sm">
+            <i class="bi bi-trash me-1"></i> Delete Room
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Room Summary Card -->
+    <div class="col-12 col-lg-4">
+        <div class="custom-card mb-4">
+            <div class="card-header-custom d-flex justify-content-between align-items-center">
+                <span class="fw-bold">Room Specifications</span>
+                {% if room.availability_status == 'Available' %}
+                    <span class="badge badge-available">Available</span>
+                {% elif room.availability_status == 'Full' %}
+                    <span class="badge badge-full">Full</span>
+                {% else %}
+                    <span class="badge badge-maintenance">Maintenance</span>
+                {% endif %}
+            </div>
+            <div class="card-body p-4">
+                <div class="mb-3">
+                    <small class="text-muted d-block">Bed Allocation</small>
+                    <h4 class="fw-bold text-dark mb-1">{{ room.occupied_count }} / {{ room.capacity }} Beds Occupied</h4>
+                    <div class="progress occupancy-progress mb-2" style="height: 10px;">
+                        <div class="progress-bar {% if room.is_full %}bg-danger{% else %}bg-primary{% endif %}"
+                             role="progressbar"
+                             style="width: {{ room.occupancy_percentage }}%;"
+                             aria-valuenow="{{ room.occupancy_percentage }}"
+                             aria-valuemin="0"
+                             aria-valuemax="100">
+                        </div>
+                    </div>
+                    <span class="small text-muted">{{ room.available_beds }} vacant bed(s) available</span>
+                </div>
+
+                <hr>
+
+                <div class="row g-2 small">
+                    <div class="col-6 text-muted">Block / Wing:</div>
+                    <div class="col-6 fw-semibold text-end">{{ room.block }}</div>
+                    <div class="col-6 text-muted">Floor:</div>
+                    <div class="col-6 fw-semibold text-end">{{ room.floor }}</div>
+                    <div class="col-6 text-muted">Room Type:</div>
+                    <div class="col-6 fw-semibold text-end">{{ room.get_room_type_display }}</div>
+                    <div class="col-6 text-muted">Created On:</div>
+                    <div class="col-6 fw-semibold text-end">{{ room.created_at|date:"M d, Y" }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Student to this Room -->
+        {% if not room.is_full and room.availability_status != 'Maintenance' %}
+        <div class="custom-card">
+            <div class="card-header-custom">
+                <span class="fw-bold text-success"><i class="bi bi-person-plus me-1"></i>Assign Student to this Room</span>
+            </div>
+            <div class="card-body p-4">
+                {% if unallocated_students %}
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="add_student" value="1">
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-muted">Select Unassigned Student</label>
+                            <select name="student_id" class="form-select" required>
+                                <option value="">-- Choose Student --</option>
+                                {% for stu in unallocated_students %}
+                                    <option value="{{ stu.pk }}">{{ stu.name }} ({{ stu.student_id }} - {{ stu.department }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100 rounded-3">
+                            <i class="bi bi-check2-circle me-1"></i> Allocate Bed
+                        </button>
+                    </form>
+                {% else %}
+                    <p class="text-muted small mb-0">
+                        <i class="bi bi-info-circle me-1"></i> All enrolled students already have rooms assigned!
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+        {% elif room.is_full %}
+        <div class="alert alert-warning border shadow-sm">
+            <i class="bi bi-exclamation-circle-fill me-1"></i> <strong>Room is full.</strong> Capacity limit ({{ room.capacity }} beds) reached.
+        </div>
+        {% elif room.availability_status == 'Maintenance' %}
+        <div class="alert alert-danger border shadow-sm">
+            <i class="bi bi-tools me-1"></i> <strong>Under maintenance.</strong> Room allocations are temporarily locked.
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Occupants Table -->
+    <div class="col-12 col-lg-8">
+        <div class="custom-card">
+            <div class="card-header-custom d-flex justify-content-between align-items-center">
+                <span class="fw-bold"><i class="bi bi-people-fill text-primary me-2"></i>Current Occupants ({{ occupants.count }})</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-custom mb-0">
+                        <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Name</th>
+                                <th>Department &amp; Year</th>
+                                <th>Contact</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stu in occupants %}
+                            <tr>
+                                <td><strong>{{ stu.student_id }}</strong></td>
+                                <td>
+                                    <a href="{% url 'student_detail' stu.pk %}" class="fw-bold text-decoration-none text-dark">
+                                        {{ stu.name }}
+                                    </a>
+                                </td>
+                                <td>{{ stu.department }} ({{ stu.year }})</td>
+                                <td>
+                                    <div><i class="bi bi-telephone text-muted me-1 small"></i>{{ stu.phone }}</div>
+                                    <small class="text-muted">{{ stu.email }}</small>
+                                </td>
+                                <td class="text-end">
+                                    <form method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to unassign {{ stu.name }} from this room?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="remove_student" value="1">
+                                        <input type="hidden" name="student_id" value="{{ stu.pk }}">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill" title="Unassign Student">
+                                            <i class="bi bi-person-x me-1"></i> Remove
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="bi bi-door-open fs-2 d-block mb-1 text-secondary"></i>
+                                    No students currently allocated to this room.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

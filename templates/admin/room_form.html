@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Hostel Management System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-7">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a href="{% url 'room_list' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i> Back to Room List
+            </a>
+            <span class="badge bg-primary text-white px-3 py-2 rounded-pill">Room Setup</span>
+        </div>
+
+        <div class="custom-card shadow-sm">
+            <div class="card-header-custom bg-white border-bottom py-3">
+                <h4 class="fw-bold mb-0 text-primary">
+                    <i class="bi bi-door-open-fill me-2"></i>{{ title }}
+                </h4>
+            </div>
+
+            <div class="card-body p-4">
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ form.non_field_errors }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endif %}
+
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label for="{{ form.room_number.id_for_label }}" class="form-label fw-semibold">
+                                Room Number <span class="text-danger">*</span>
+                            </label>
+                            {{ form.room_number }}
+                            {% if form.room_number.errors %}
+                                <div class="text-danger small mt-1">{{ form.room_number.errors|first }}</div>
+                            {% endif %}
+                            <div class="form-text">Unique identification e.g., A-101, B-204</div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label for="{{ form.block.id_for_label }}" class="form-label fw-semibold">
+                                Block / Hostel Wing <span class="text-danger">*</span>
+                            </label>
+                            {{ form.block }}
+                            {% if form.block.errors %}
+                                <div class="text-danger small mt-1">{{ form.block.errors|first }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label for="{{ form.floor.id_for_label }}" class="form-label fw-semibold">
+                                Floor Number <span class="text-danger">*</span>
+                            </label>
+                            {{ form.floor }}
+                            {% if form.floor.errors %}
+                                <div class="text-danger small mt-1">{{ form.floor.errors|first }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label for="{{ form.room_type.id_for_label }}" class="form-label fw-semibold">
+                                Room Type <span class="text-danger">*</span>
+                            </label>
+                            {{ form.room_type }}
+                            {% if form.room_type.errors %}
+                                <div class="text-danger small mt-1">{{ form.room_type.errors|first }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label for="{{ form.capacity.id_for_label }}" class="form-label fw-semibold">
+                                Capacity (Beds) <span class="text-danger">*</span>
+                            </label>
+                            {{ form.capacity }}
+                            {% if form.capacity.errors %}
+                                <div class="text-danger small mt-1">{{ form.capacity.errors|first }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <label for="{{ form.availability_status.id_for_label }}" class="form-label fw-semibold">
+                                Availability Status <span class="text-danger">*</span>
+                            </label>
+                            {{ form.availability_status }}
+                            {% if form.availability_status.errors %}
+                                <div class="text-danger small mt-1">{{ form.availability_status.errors|first }}</div>
+                            {% endif %}
+                            <div class="form-text">Marking 'Under Maintenance' temporarily prevents any student assignment.</div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'room_list' %}" class="btn btn-outline-secondary px-4 rounded-3">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4 rounded-3 fw-bold">
+                            <i class="bi bi-check2-circle me-1"></i> Save Room
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

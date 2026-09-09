@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Dashboard - Hostel Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="fw-bold mb-1 text-primary">Welcome, {{ student.name }}!</h2>
+        <p class="text-muted mb-0">Student ID: <code>{{ student.student_id }}</code> &bull; {{ student.department }} ({{ student.year }})</p>
+    </div>
+    <a href="{% url 'submit_complaint' %}" class="btn btn-primary rounded-pill px-3 shadow-sm">
+        <i class="bi bi-pencil-square me-1"></i> Submit Complaint
+    </a>
+</div>
+
+<!-- Key Stat Cards -->
+<div class="row g-3 mb-4">
+    <!-- Room Allotment Card -->
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card p-3 p-xl-4 border-start border-4 border-primary">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.75rem;">Assigned Room</span>
+                    <h3 class="fw-bold mb-0 text-dark mt-1">
+                        {% if room %}
+                            {{ room.room_number }}
+                        {% else %}
+                            <span class="text-muted fs-5">Unassigned</span>
+                        {% endif %}
+                    </h3>
+                    <small class="text-muted">{{ room.block|default:"Contact Warden" }}</small>
+                </div>
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                    <i class="bi bi-door-open-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Complaints Filed -->
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card p-3 p-xl-4 border-start border-4 border-info">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.75rem;">Total Complaints</span>
+                    <h3 class="fw-bold mb-0 text-dark mt-1">{{ total_submitted }}</h3>
+                    <small class="text-muted">Requests lodged</small>
+                </div>
+                <div class="stat-icon bg-info bg-opacity-10 text-info">
+                    <i class="bi bi-clipboard-data-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Complaints -->
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card p-3 p-xl-4 border-start border-4 border-warning">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.75rem;">Pending Requests</span>
+                    <h3 class="fw-bold mb-0 text-warning mt-1">{{ pending_count }}</h3>
+                    <small class="text-muted">Awaiting action</small>
+                </div>
+                <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                    <i class="bi bi-hourglass-split"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resolved Complaints -->
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card p-3 p-xl-4 border-start border-4 border-success">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.75rem;">Resolved Issues</span>
+                    <h3 class="fw-bold mb-0 text-success mt-1">{{ resolved_count }}</h3>
+                    <small class="text-muted">Completed by staff</small>
+                </div>
+                <div class="stat-icon bg-success bg-opacity-10 text-success">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Assigned Room & Roommates -->
+    <div class="col-12 col-lg-5">
+        <div class="custom-card mb-4">
+            <div class="card-header-custom d-flex justify-content-between align-items-center">
+                <span class="fw-bold"><i class="bi bi-house-door-fill text-primary me-2"></i>My Room Information</span>
+                <a href="{% url 'student_room' %}" class="btn btn-sm btn-outline-primary rounded-pill">Details</a>
+            </div>
+            <div class="card-body p-4">
+                {% if room %}
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-3 text-center" style="min-width: 70px;">
+                            <i class="bi bi-door-closed fs-1"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold text-dark mb-0">Room {{ room.room_number }}</h4>
+                            <div class="text-muted">{{ room.block }} &bull; Floor {{ room.floor }}</div>
+                            <span class="badge bg-light text-dark border mt-1">{{ room.get_room_type_display }}</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 pt-3 border-top">
+                        <h6 class="fw-bold small text-muted text-uppercase mb-2">Roommates</h6>
+                        {% if roommates %}
+                            <ul class="list-group list-group-flush">
+                                {% for mate in roommates %}
+                                    <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>{{ mate.name }}</strong>
+                                            <small class="d-block text-muted">{{ mate.department }} ({{ mate.year }})</small>
+                                        </div>
+                                        <span class="badge bg-light text-dark border">{{ mate.phone }}</span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-muted small mb-0">You currently have no roommates in this room.</p>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-door-closed fs-1 d-block mb-2 text-secondary"></i>
+                        <p class="mb-2">No hostel room has been allocated to you yet.</p>
+                        <small>Please contact your hostel warden for room allotment.</small>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Complaints Table -->
+    <div class="col-12 col-lg-7">
+        <div class="custom-card">
+            <div class="card-header-custom d-flex justify-content-between align-items-center">
+                <span class="fw-bold"><i class="bi bi-clock-history text-primary me-2"></i>My Recent Complaints</span>
+                <a href="{% url 'my_complaints' %}" class="btn btn-sm btn-outline-primary rounded-pill">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-custom mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Category</th>
+                                <th>Subject</th>
+                                <th>Status</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in recent_complaints %}
+                            <tr>
+                                <td><strong class="text-secondary">{{ c.complaint_id }}</strong></td>
+                                <td><span class="badge bg-light text-dark border">{{ c.category }}</span></td>
+                                <td>
+                                    <span class="fw-semibold text-truncate d-inline-block" style="max-width: 200px;">{{ c.subject }}</span>
+                                    {% if c.admin_response %}
+                                        <small class="text-success d-block"><i class="bi bi-check-circle me-1"></i>Response received</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if c.status == 'Pending' %}
+                                        <span class="badge badge-pending">Pending</span>
+                                    {% elif c.status == 'In Progress' %}
+                                        <span class="badge badge-progress">In Progress</span>
+                                    {% elif c.status == 'Resolved' %}
+                                        <span class="badge badge-resolved">Resolved</span>
+                                    {% else %}
+                                        <span class="badge badge-rejected">Rejected</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <a href="{% url 'student_complaint_detail' c.pk %}" class="btn btn-sm btn-outline-primary rounded-pill px-2">
+                                        Track
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="bi bi-clipboard2-check fs-2 d-block mb-2 text-success"></i>
+                                    You have not submitted any complaints yet.
+                                    <div class="mt-2">
+                                        <a href="{% url 'submit_complaint' %}" class="btn btn-sm btn-primary rounded-pill">Submit a Complaint</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

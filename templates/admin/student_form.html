@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Hostel Management System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a href="{% url 'student_list' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i> Back to Student List
+            </a>
+            <span class="badge bg-primary text-white px-3 py-2 rounded-pill">
+                {% if is_create %}Registration Form{% else %}Record Update{% endif %}
+            </span>
+        </div>
+
+        <div class="custom-card overflow-hidden shadow-sm">
+            <div class="card-header-custom bg-white border-bottom py-3">
+                <h4 class="fw-bold mb-0 text-primary">
+                    <i class="bi bi-person-fill-gear me-2"></i>{{ title }}
+                </h4>
+            </div>
+
+            <div class="card-body p-4">
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ form.non_field_errors }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endif %}
+
+                    <div class="row g-3">
+                        {% if is_create %}
+                        <div class="col-12 col-md-6">
+                            <label for="{{ form.student_id.id_for_label }}" class="form-label fw-semibold">
+                                Student ID / Roll No <span class="text-danger">*</span>
+                            </label>
+                            {{ form.student_id }}
+                            {% if form.student_id.errors %}
+                                <div class="text-danger small mt-1">{{ form.student_id.errors|first }}</div>
+                            {% endif %}
+                            <div class="form-text">Unique identification code used by student to log in.</div>
+                        </div>
+                        {% endif %}
+
+                        <div class="col-12 col-md-{% if is_create %}6{% else %}12{% endif %}">
+                            <label for="{{ form.name.id_for_label }}" class="form-label fw-semibold">
+                                Full Name <span class="text-danger">*</span>
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="text-danger small mt-1">{{ form.name.errors|first }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label for="{{ form.department.id_for_label }}" class="form-label fw-semibold">
+                                Department <span class="text-danger">*</span>
+                            </label>
+                            {{ form.department }}
+                            {% if form.department.errors %}
+                                <div class="text-danger small mt-1">{{ form.department.errors|first }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label for="{{ form.year.id_for_label }}" class="form-label fw-semibold">
+                                Year of Study <span class="text-danger">*</span>
+                            </label>
+                            {{ form.year }}
+                            {% if form.year.errors %}
+                                <div class="text-danger small mt-1">{{ form.year.errors|first }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label for="{{ form.gender.id_for_label }}" class="form-label fw-semibold">
+                                Gender <span class="text-danger">*</span>
+                            </label>
+                            {{ form.gender }}
+                            {% if form.gender.errors %}
+                                <div class="text-danger small mt-1">{{ form.gender.errors|first }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label for="{{ form.phone.id_for_label }}" class="form-label fw-semibold">
+                                Phone Number (10 Digits) <span class="text-danger">*</span>
+                            </label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}
+                                <div class="text-danger small mt-1">{{ form.phone.errors|first }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold">
+                                Email Address <span class="text-danger">*</span>
+                            </label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="text-danger small mt-1">{{ form.email.errors|first }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label for="{{ form.room.id_for_label }}" class="form-label fw-semibold">
+                                Assign Hostel Room
+                            </label>
+                            {{ form.room }}
+                            {% if form.room.errors %}
+                                <div class="text-danger small mt-1">{{ form.room.errors|first }}</div>
+                            {% endif %}
+                            <div class="form-text">Leave blank if room is to be allocated later.</div>
+                        </div>
+
+                        {% if is_create %}
+                        <div class="col-12 col-md-6">
+                            <label for="{{ form.password.id_for_label }}" class="form-label fw-semibold">
+                                Account Password <span class="text-danger">*</span>
+                            </label>
+                            {{ form.password }}
+                            {% if form.password.errors %}
+                                <div class="text-danger small mt-1">{{ form.password.errors|first }}</div>
+                            {% endif %}
+                            <div class="form-text">{{ form.password.help_text }}</div>
+                        </div>
+                        {% else %}
+                        <div class="col-12 col-md-6">
+                            <label for="{{ form.new_password.id_for_label }}" class="form-label fw-semibold">
+                                Change Password
+                            </label>
+                            {{ form.new_password }}
+                            {% if form.new_password.errors %}
+                                <div class="text-danger small mt-1">{{ form.new_password.errors|first }}</div>
+                            {% endif %}
+                            <div class="form-text">{{ form.new_password.help_text }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'student_list' %}" class="btn btn-outline-secondary px-4 rounded-3">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4 rounded-3 fw-bold">
+                            <i class="bi bi-check2-circle me-1"></i> Save Student Information
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

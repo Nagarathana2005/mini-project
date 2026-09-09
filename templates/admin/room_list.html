@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Rooms - Hostel Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="fw-bold mb-1 text-primary">Room Management</h2>
+        <p class="text-muted mb-0">Monitor room allocations, capacities, and maintenance statuses (Total: {{ total_count }})</p>
+    </div>
+    <a href="{% url 'room_create' %}" class="btn btn-primary rounded-pill px-3 shadow-sm">
+        <i class="bi bi-door-open-fill me-1"></i> Add New Room
+    </a>
+</div>
+
+<!-- Search & Filter Card -->
+<div class="custom-card p-3 mb-4">
+    <form method="GET" class="row g-2 align-items-center">
+        <div class="col-12 col-md-3">
+            <div class="input-group">
+                <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+                <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search room # or block...">
+            </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <select name="block" class="form-select">
+                <option value="">All Blocks</option>
+                {% for b in blocks %}
+                    <option value="{{ b }}" {% if selected_block == b %}selected{% endif %}>{{ b }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-6 col-md-2">
+            <select name="room_type" class="form-select">
+                <option value="">All Room Types</option>
+                {% for code, label in room_types %}
+                    <option value="{{ code }}" {% if selected_type == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-6 col-md-2">
+            <select name="status" class="form-select">
+                <option value="">All Statuses</option>
+                {% for code, label in status_choices %}
+                    <option value="{{ code }}" {% if selected_status == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-6 col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary w-100 rounded-3">Filter</button>
+            <a href="{% url 'room_list' %}" class="btn btn-outline-secondary rounded-3" title="Reset Filters"><i class="bi bi-arrow-counterclockwise"></i></a>
+        </div>
+    </form>
+</div>
+
+<!-- Rooms Table Card -->
+<div class="custom-card">
+    <div class="table-responsive">
+        <table class="table table-hover table-custom mb-0">
+            <thead>
+                <tr>
+                    <th>Room #</th>
+                    <th>Block &amp; Floor</th>
+                    <th>Type</th>
+                    <th>Capacity &amp; Occupancy</th>
+                    <th>Status</th>
+                    <th>Current Occupants</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in rooms %}
+                <tr>
+                    <td>
+                        <a href="{% url 'room_detail' r.pk %}" class="fw-bold text-decoration-none fs-6 text-primary">
+                            {{ r.room_number }}
+                        </a>
+                    </td>
+                    <td>
+                        <strong>{{ r.block }}</strong>
+                        <small class="text-muted d-block">Floor {{ r.floor }}</small>
+                    </td>
+                    <td>
+                        <span class="badge bg-light text-dark border">{{ r.get_room_type_display }}</span>
+                    </td>
+                    <td style="min-width: 170px;">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span class="fw-semibold">{{ r.occupied_count }} / {{ r.capacity }} Beds</span>
+                            <span class="text-muted">{{ r.occupancy_percentage }}%</span>
+                        </div>
+                        <div class="progress occupancy-progress">
+                            <div class="progress-bar {% if r.is_full %}bg-danger{% elif r.occupied_count > 0 %}bg-primary{% else %}bg-success{% endif %}"
+                                 role="progressbar"
+                                 style="width: {{ r.occupancy_percentage }}%;"
+                                 aria-valuenow="{{ r.occupancy_percentage }}"
+                                 aria-valuemin="0"
+                                 aria-valuemax="100">
+                            </div>
+                        </div>
+                        <small class="text-muted">{{ r.available_beds }} beds vacant</small>
+                    </td>
+                    <td>
+                        {% if r.availability_status == 'Available' %}
+                            <span class="badge badge-available px-2 py-1 rounded-pill"><i class="bi bi-check-circle me-1"></i>Available</span>
+                        {% elif r.availability_status == 'Full' %}
+                            <span class="badge badge-full px-2 py-1 rounded-pill"><i class="bi bi-person-fill-slash me-1"></i>Full</span>
+                        {% else %}
+                            <span class="badge badge-maintenance px-2 py-1 rounded-pill"><i class="bi bi-wrench me-1"></i>Maintenance</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if r.students.all %}
+                            <div class="d-flex flex-wrap gap-1">
+                                {% for s in r.students.all %}
+                                    <a href="{% url 'student_detail' s.pk %}" class="badge bg-light text-dark border text-decoration-none">
+                                        {{ s.name }}
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <span class="text-muted small">No students assigned</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <div class="btn-group btn-group-sm">
+                            <a href="{% url 'room_detail' r.pk %}" class="btn btn-outline-primary" title="Manage Occupants">
+                                <i class="bi bi-people"></i>
+                            </a>
+                            <a href="{% url 'room_edit' r.pk %}" class="btn btn-outline-secondary" title="Edit Room">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'room_delete' r.pk %}" class="btn btn-outline-danger" title="Delete Room">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <i class="bi bi-door-closed fs-1 d-block mb-2 text-secondary"></i>
+                        No rooms match the search and filter settings.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

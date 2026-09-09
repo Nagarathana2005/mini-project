@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}Hostel Complaints - Hostel Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="fw-bold mb-1 text-primary">Hostel Complaints &amp; Grievances</h2>
+        <p class="text-muted mb-0">Track maintenance issues, update statuses, and submit responses to students (Total: {{ total_count }})</p>
+    </div>
+</div>
+
+<!-- Filter Card -->
+<div class="custom-card p-3 mb-4">
+    <form method="GET" class="row g-2 align-items-center">
+        <div class="col-12 col-md-4">
+            <div class="input-group">
+                <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+                <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search by ID, student, subject...">
+            </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <select name="category" class="form-select">
+                <option value="">All Categories</option>
+                {% for code, label in categories %}
+                    <option value="{{ code }}" {% if selected_category == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <select name="status" class="form-select">
+                <option value="">All Statuses</option>
+                {% for code, label in status_choices %}
+                    <option value="{{ code }}" {% if selected_status == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-12 col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary w-100 rounded-3">Filter</button>
+            <a href="{% url 'complaint_list' %}" class="btn btn-outline-secondary rounded-3" title="Reset Filters"><i class="bi bi-arrow-counterclockwise"></i></a>
+        </div>
+    </form>
+</div>
+
+<!-- Complaints Table -->
+<div class="custom-card">
+    <div class="table-responsive">
+        <table class="table table-hover table-custom mb-0">
+            <thead>
+                <tr>
+                    <th>Complaint ID</th>
+                    <th>Student Details</th>
+                    <th>Category</th>
+                    <th>Subject &amp; Description</th>
+                    <th>Date Filed</th>
+                    <th>Status</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in complaints %}
+                <tr>
+                    <td>
+                        <strong class="text-secondary">{{ c.complaint_id }}</strong>
+                    </td>
+                    <td>
+                        <a href="{% url 'student_detail' c.student.pk %}" class="fw-bold text-decoration-none text-dark">
+                            {{ c.student.name }}
+                        </a>
+                        <small class="d-block text-muted">
+                            ID: {{ c.student.student_id }} &bull;
+                            {% if c.student.room %}
+                                Room {{ c.student.room.room_number }}
+                            {% else %}
+                                No Room
+                            {% endif %}
+                        </small>
+                    </td>
+                    <td>
+                        <span class="badge bg-light text-dark border">{{ c.category }}</span>
+                    </td>
+                    <td>
+                        <div class="fw-semibold text-dark">{{ c.subject }}</div>
+                        <small class="text-muted text-truncate d-inline-block" style="max-width: 260px;">{{ c.description }}</small>
+                        {% if c.admin_response %}
+                            <div class="text-success small"><i class="bi bi-reply-fill me-1"></i>Response added</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <small class="text-muted">{{ c.date|date:"M d, Y" }}</small><br>
+                        <small class="text-muted" style="font-size: 0.75rem;">{{ c.date|time:"H:i" }}</small>
+                    </td>
+                    <td>
+                        {% if c.status == 'Pending' %}
+                            <span class="badge badge-pending px-2 py-1 rounded-pill"><i class="bi bi-clock me-1"></i>Pending</span>
+                        {% elif c.status == 'In Progress' %}
+                            <span class="badge badge-progress px-2 py-1 rounded-pill"><i class="bi bi-arrow-repeat me-1"></i>In Progress</span>
+                        {% elif c.status == 'Resolved' %}
+                            <span class="badge badge-resolved px-2 py-1 rounded-pill"><i class="bi bi-check2 me-1"></i>Resolved</span>
+                        {% else %}
+                            <span class="badge badge-rejected px-2 py-1 rounded-pill"><i class="bi bi-x me-1"></i>Rejected</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <a href="{% url 'complaint_detail' c.pk %}" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
+                            <i class="bi bi-chat-dots me-1"></i> Review
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
+                        No complaints match your query.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Complaint {{ complaint.complaint_id }} - Hostel Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <a href="{% url 'complaint_list' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 mb-2">
+            <i class="bi bi-arrow-left me-1"></i> Back to Complaints
+        </a>
+        <h2 class="fw-bold mb-0 text-primary">Complaint {{ complaint.complaint_id }}</h2>
+        <span class="text-muted">Submitted on {{ complaint.date|date:"F d, Y \a\\t H:i" }}</span>
+    </div>
+    <div>
+        {% if complaint.status == 'Pending' %}
+            <span class="badge badge-pending px-3 py-2 rounded-pill fs-6"><i class="bi bi-clock me-1"></i>Pending</span>
+        {% elif complaint.status == 'In Progress' %}
+            <span class="badge badge-progress px-3 py-2 rounded-pill fs-6"><i class="bi bi-arrow-repeat me-1"></i>In Progress</span>
+        {% elif complaint.status == 'Resolved' %}
+            <span class="badge badge-resolved px-3 py-2 rounded-pill fs-6"><i class="bi bi-check2 me-1"></i>Resolved</span>
+        {% else %}
+            <span class="badge badge-rejected px-3 py-2 rounded-pill fs-6"><i class="bi bi-x me-1"></i>Rejected</span>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Complaint Details -->
+    <div class="col-12 col-lg-7">
+        <div class="custom-card mb-4">
+            <div class="card-header-custom d-flex justify-content-between align-items-center">
+                <span class="fw-bold"><i class="bi bi-file-earmark-text text-primary me-2"></i>Grievance Details</span>
+                <span class="badge bg-light text-dark border">{{ complaint.category }}</span>
+            </div>
+            <div class="card-body p-4">
+                <h4 class="fw-bold text-dark mb-3">{{ complaint.subject }}</h4>
+                <div class="p-3 bg-light rounded-3 border mb-4 text-dark" style="white-space: pre-wrap; line-height: 1.6;">{{ complaint.description }}</div>
+
+                <div class="row g-2 small text-muted">
+                    <div class="col-sm-6">
+                        <strong>Last Updated:</strong> {{ complaint.updated_at|date:"M d, Y H:i" }}
+                    </div>
+                    <div class="col-sm-6">
+                        <strong>Category:</strong> {{ complaint.get_category_display }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Contact Summary -->
+        <div class="custom-card">
+            <div class="card-header-custom">
+                <span class="fw-bold"><i class="bi bi-person-fill text-primary me-2"></i>Complainant Student Information</span>
+            </div>
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div>
+                        <h5 class="fw-bold mb-0">
+                            <a href="{% url 'student_detail' complaint.student.pk %}" class="text-decoration-none">
+                                {{ complaint.student.name }}
+                            </a>
+                        </h5>
+                        <small class="text-muted">Student ID: <code>{{ complaint.student.student_id }}</code></small>
+                    </div>
+                    <span class="badge bg-primary">{{ complaint.student.department }} ({{ complaint.student.year }})</span>
+                </div>
+                <div class="row g-2 small">
+                    <div class="col-6 text-muted">Hostel Room:</div>
+                    <div class="col-6 fw-semibold">
+                        {% if complaint.student.room %}
+                            Room {{ complaint.student.room.room_number }} ({{ complaint.student.room.block }})
+                        {% else %}
+                            <span class="text-danger">No Room Assigned</span>
+                        {% endif %}
+                    </div>
+                    <div class="col-6 text-muted">Contact Phone:</div>
+                    <div class="col-6 fw-semibold">{{ complaint.student.phone }}</div>
+                    <div class="col-6 text-muted">Email Address:</div>
+                    <div class="col-6 fw-semibold">{{ complaint.student.email }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Response & Status Form -->
+    <div class="col-12 col-lg-5">
+        <div class="custom-card shadow-sm">
+            <div class="card-header-custom bg-white border-bottom">
+                <h5 class="fw-bold mb-0 text-primary">
+                    <i class="bi bi-reply-fill me-2"></i>Warden / Admin Action
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="{{ form.status.id_for_label }}" class="form-label fw-semibold">
+                            Update Complaint Status <span class="text-danger">*</span>
+                        </label>
+                        {{ form.status }}
+                        {% if form.status.errors %}
+                            <div class="text-danger small mt-1">{{ form.status.errors|first }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.admin_response.id_for_label }}" class="form-label fw-semibold">
+                            Admin / Warden Response / Remarks
+                        </label>
+                        {{ form.admin_response }}
+                        {% if form.admin_response.errors %}
+                            <div class="text-danger small mt-1">{{ form.admin_response.errors|first }}</div>
+                        {% endif %}
+                        <div class="form-text">
+                            This response will be immediately visible on the student's portal.
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary rounded-3 fw-bold py-2">
+                            <i class="bi bi-check2-circle me-1"></i> Update Status &amp; Send Response
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - Hostel Management System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold mb-0 text-primary">Student Profile</h2>
+                <p class="text-muted mb-0">Your institutional registration and hostel accommodation details</p>
+            </div>
+            <a href="{% url 'student_dashboard' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                <i class="bi bi-speedometer2 me-1"></i> Dashboard
+            </a>
+        </div>
+
+        <div class="custom-card shadow-sm">
+            <div class="card-header-custom d-flex align-items-center justify-content-between">
+                <span class="fw-bold"><i class="bi bi-person-badge-fill text-primary me-2"></i>Personal Profile</span>
+                <span class="badge bg-primary px-3 py-2 rounded-pill">{{ student.department }} ({{ student.year }})</span>
+            </div>
+
+            <div class="card-body p-4 p-md-5">
+                <div class="d-flex align-items-center gap-4 mb-4 pb-4 border-bottom flex-wrap">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold fs-2" style="width: 75px; height: 75px;">
+                        {{ student.name|slice:":1" }}
+                    </div>
+                    <div>
+                        <h3 class="fw-bold mb-1 text-dark">{{ student.name }}</h3>
+                        <div class="text-muted">Student ID: <code class="fs-6">{{ student.student_id }}</code></div>
+                        <div class="text-muted small">Registered: {{ student.created_at|date:"F d, Y" }}</div>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-12 col-md-6">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.75rem;">Department</small>
+                            <h5 class="fw-bold text-dark mb-0 mt-1">{{ student.get_department_display }}</h5>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.75rem;">Academic Year</small>
+                            <h5 class="fw-bold text-dark mb-0 mt-1">{{ student.year }}</h5>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.75rem;">Gender</small>
+                            <h5 class="fw-bold text-dark mb-0 mt-1">{{ student.gender }}</h5>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.75rem;">Contact Number</small>
+                            <h5 class="fw-bold text-dark mb-0 mt-1">{{ student.phone }}</h5>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.75rem;">Email Address</small>
+                            <h5 class="fw-bold text-dark mb-0 mt-1">{{ student.email }}</h5>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.75rem;">Allocated Room</small>
+                            <h5 class="fw-bold text-dark mb-0 mt-1">
+                                {% if student.room %}
+                                    Room {{ student.room.room_number }} ({{ student.room.block }})
+                                {% else %}
+                                    <span class="text-danger">Not Yet Allocated</span>
+                                {% endif %}
+                            </h5>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                    <small class="text-muted"><i class="bi bi-info-circle me-1"></i>To update personal details, please contact the hostel warden.</small>
+                    <a href="{% url 'student_room' %}" class="btn btn-outline-primary rounded-pill px-3 btn-sm">
+                        View Room Details <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

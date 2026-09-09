@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Complaint {{ complaint.complaint_id }} - Hostel Management System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a href="{% url 'my_complaints' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i> Back to My Complaints
+            </a>
+            <div>
+                {% if complaint.status == 'Pending' %}
+                    <span class="badge badge-pending px-3 py-2 rounded-pill fs-6"><i class="bi bi-clock me-1"></i>Pending Review</span>
+                {% elif complaint.status == 'In Progress' %}
+                    <span class="badge badge-progress px-3 py-2 rounded-pill fs-6"><i class="bi bi-arrow-repeat me-1"></i>In Progress</span>
+                {% elif complaint.status == 'Resolved' %}
+                    <span class="badge badge-resolved px-3 py-2 rounded-pill fs-6"><i class="bi bi-check2 me-1"></i>Resolved</span>
+                {% else %}
+                    <span class="badge badge-rejected px-3 py-2 rounded-pill fs-6"><i class="bi bi-x me-1"></i>Rejected</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Complaint Info Card -->
+        <div class="custom-card shadow-sm mb-4">
+            <div class="card-header-custom d-flex justify-content-between align-items-center">
+                <span class="fw-bold"><i class="bi bi-ticket-detailed text-primary me-2"></i>{{ complaint.complaint_id }} Details</span>
+                <span class="badge bg-light text-dark border">{{ complaint.category }}</span>
+            </div>
+
+            <div class="card-body p-4 p-md-5">
+                <h3 class="fw-bold text-dark mb-2">{{ complaint.subject }}</h3>
+                <div class="text-muted small mb-4">
+                    <i class="bi bi-calendar3 me-1"></i> Filed on {{ complaint.date|date:"F d, Y \a\\t H:i" }} &bull;
+                    <i class="bi bi-tag me-1"></i> Category: {{ complaint.category }}
+                </div>
+
+                <div class="p-4 bg-light rounded-3 border mb-4">
+                    <h6 class="fw-bold text-uppercase small text-muted mb-2">Description / Issue Reported:</h6>
+                    <p class="text-dark mb-0" style="white-space: pre-wrap; line-height: 1.7;">{{ complaint.description }}</p>
+                </div>
+
+                <!-- Admin Response Card -->
+                <div class="card border-0 shadow-sm mt-4 {% if complaint.admin_response %}border-start border-4 border-success{% else %}border-start border-4 border-secondary{% endif %}">
+                    <div class="card-body p-4 bg-light bg-opacity-50 rounded-3">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-chat-quote-fill {% if complaint.admin_response %}text-success{% else %}text-muted{% endif %} fs-4"></i>
+                            <h5 class="fw-bold mb-0 text-dark">Warden / Administrator Response</h5>
+                        </div>
+
+                        {% if complaint.admin_response %}
+                            <div class="p-3 bg-white rounded-3 border text-dark mt-2" style="white-space: pre-wrap; line-height: 1.6;">
+                                {{ complaint.admin_response }}
+                            </div>
+                            <small class="text-muted d-block mt-2">
+                                <i class="bi bi-clock-history me-1"></i>Last updated: {{ complaint.updated_at|date:"M d, Y H:i" }}
+                            </small>
+                        {% else %}
+                            <div class="text-muted small italic mt-2 p-2">
+                                <i class="bi bi-hourglass-top me-1"></i> Your grievance is being examined by the hostel administration. An official response will appear here once reviewed.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
