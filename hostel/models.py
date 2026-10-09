@@ -186,3 +186,85 @@ class Complaint(models.Model):
         if is_new and not self.complaint_id:
             self.complaint_id = f"CMP-{self.id:04d}"
             Complaint.objects.filter(pk=self.pk).update(complaint_id=self.complaint_id)
+
+
+class LeaveRequest(models.Model):
+    LEAVE_TYPE_CHOICES = [
+        ('Home Leave', 'Home Leave / Vacation'),
+        ('Day Outing', 'Day Outing / Local Visit'),
+        ('Emergency', 'Emergency / Medical Leave'),
+        ('Academic', 'Academic / Project / Conference'),
+    ]
+
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected'),
+    ]
+
+    leave_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='leave_requests')
+    leave_type = models.CharField(max_length=30, choices=LEAVE_TYPE_CHOICES, default='Home Leave')
+    start_date = models.DateField(help_text="Departure / Start Date")
+    end_date = models.DateField(help_text="Return / End Date")
+    destination = models.CharField(max_length=200, help_text="Destination address / city")
+    emergency_contact = models.CharField(
+        max_length=10,
+        validators=[Student.phone_regex],
+        help_text="Parent or emergency contact number (10 digits)"
+    )
+    reason = models.TextField(help_text="Reason for leave or gate pass")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    warden_remarks = models.TextField(blank=True, null=True, help_text="Warden remarks or gate instructions")
+    applied_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-applied_at']
+
+    def __str__(self):
+        return f"{self.leave_id or 'Leave'} - {self.student.name} ({self.leave_type}) [{self.status}]"
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+        if is_new and not self.leave_id:
+            self.leave_id = f"LEV-{self.id:04d}"
+            LeaveRequest.objects.filter(pk=self.pk).update(leave_id=self.leave_id)
+
+
+class MessMenu(models.Model):
+    DAY_CHOICES = [
+        ('Monday', 'Monday'),
+        ('Tuesday', 'Tuesday'),
+        ('Wednesday', 'Wednesday'),
+        ('Thursday', 'Thursday'),
+        ('Friday', 'Friday'),
+        ('Saturday', 'Saturday'),
+        ('Sunday', 'Sunday'),
+    ]
+
+    day_of_week = models.CharField(max_length=15, choices=DAY_CHOICES, unique=True)
+    breakfast = models.TextField(help_text="South Indian Breakfast (e.g., Idli, Sambar, Chutney, Coffee)")
+    lunch = models.TextField(help_text="Lunch (e.g., Rice, Sambar, Rasam, Poriyal, Curd, Appalam)")
+    evening_snacks = models.TextField(help_text="Evening Snacks & Beverages (e.g., Tea/Coffee, Medu Vada)")
+    dinner = models.TextField(help_text="Dinner (e.g., Chapati, Kurma, Steamed Rice, Rasam, Buttermilk)")
+    special_dish = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Highlight special dishes, e.g. Chicken Biryani / Chicken Curry"
+    )
+    is_non_veg_day = models.BooleanField(
+        default=False,
+        help_text="Check if this day features Non-Veg specials (e.g., Wednesday Lunch, Sunday Lunch)"
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['id']
+
+    def __str__(self):
+        non_veg = " [Non-Veg Special]" if self.is_non_veg_day else ""
+        return f"{self.day_of_week} Menu{non_veg}"
+

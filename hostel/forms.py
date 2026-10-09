@@ -2,7 +2,7 @@ import re
 from django import forms
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from .models import Student, Room, Complaint
+from .models import Student, Room, Complaint, LeaveRequest, MessMenu
 
 
 class LoginForm(forms.Form):
@@ -172,3 +172,67 @@ class ComplaintResponseForm(forms.ModelForm):
                 'placeholder': 'Enter remarks or actions taken for this complaint...'
             }),
         }
+
+
+class LeaveRequestForm(forms.ModelForm):
+    class Meta:
+        model = LeaveRequest
+        fields = ['leave_type', 'start_date', 'end_date', 'destination', 'emergency_contact', 'reason']
+        widgets = {
+            'leave_type': forms.Select(attrs={'class': 'form-select'}),
+            'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'destination': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Home town / city / place of visit'}),
+            'emergency_contact': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '10-digit parent or emergency phone'}),
+            'reason': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Reason for leave / outing request...'}),
+        }
+
+    def clean_emergency_contact(self):
+        contact = self.cleaned_data.get('emergency_contact', '').strip()
+        if not re.match(r'^\d{10}$', contact):
+            raise ValidationError("Please provide a valid 10-digit emergency contact phone number.")
+        return contact
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+
+        if start_date and end_date:
+            import datetime
+            today = datetime.date.today()
+            if start_date < today:
+                self.add_error('start_date', "Departure date cannot be in the past.")
+            if end_date < start_date:
+                self.add_error('end_date', "Return date cannot be earlier than departure date.")
+        return cleaned_data
+
+
+class LeaveActionForm(forms.ModelForm):
+    class Meta:
+        model = LeaveRequest
+        fields = ['status', 'warden_remarks']
+        widgets = {
+            'status': forms.Select(attrs={'class': 'form-select'}),
+            'warden_remarks': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Remarks or approval notes for student & security guard (optional)...'
+            }),
+        }
+
+
+class MessMenuForm(forms.ModelForm):
+    class Meta:
+        model = MessMenu
+        fields = ['day_of_week', 'breakfast', 'lunch', 'evening_snacks', 'dinner', 'special_dish', 'is_non_veg_day']
+        widgets = {
+            'day_of_week': forms.Select(attrs={'class': 'form-select'}),
+            'breakfast': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'lunch': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'evening_snacks': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'dinner': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'special_dish': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Chicken Biryani (Wed) / Chicken Curry (Sun)'}),
+            'is_non_veg_day': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+

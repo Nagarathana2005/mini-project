@@ -30,6 +30,14 @@ urlpatterns = [
     path('admin-dashboard/complaints/', views.complaint_list, name='complaint_list'),
     path('admin-dashboard/complaints/<int:pk>/', views.complaint_detail, name='complaint_detail'),
 
+    # Leave & Gate Pass (Admin)
+    path('admin-dashboard/leaves/', views.leave_list, name='leave_list'),
+    path('admin-dashboard/leaves/<int:pk>/', views.leave_detail, name='leave_detail'),
+
+    # Mess & Food Menu (General & Admin)
+    path('mess-menu/', views.mess_menu_view, name='mess_menu_view'),
+    path('admin-dashboard/mess-menu/<int:pk>/edit/', views.mess_menu_edit, name='mess_menu_edit'),
+
     # Student Portal
     path('student-dashboard/', views.student_dashboard, name='student_dashboard'),
     path('student-dashboard/profile/', views.student_profile, name='student_profile'),
@@ -37,4 +45,10 @@ urlpatterns = [
     path('student-dashboard/complaints/submit/', views.submit_complaint, name='submit_complaint'),
     path('student-dashboard/complaints/', views.my_complaints, name='my_complaints'),
     path('student-dashboard/complaints/<int:pk>/', views.student_complaint_detail, name='student_complaint_detail'),
+
+    # Leave & Gate Pass (Student)
+    path('student-dashboard/leaves/apply/', views.apply_leave, name='apply_leave'),
+    path('student-dashboard/leaves/', views.my_leaves, name='my_leaves'),
+    path('student-dashboard/leaves/<int:pk>/', views.leave_detail_student, name='leave_detail_student'),
 ]
+

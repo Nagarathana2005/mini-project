@@ -193,10 +193,126 @@ class Command(BaseCommand):
         for room in Room.objects.all():
             room.update_occupancy()
 
-        self.stdout.write(self.style.SUCCESS("Sample data populated successfully!"))
+        # 7. Create South Indian Weekly Mess Menu
+        import datetime
+        from hostel.models import LeaveRequest, MessMenu
+
+        mess_menu_data = [
+            {
+                'day_of_week': 'Monday',
+                'breakfast': 'Soft Idli (4 pcs), Medu Vada (1 pc), Piping Hot Sambar, Coconut Chutney, Filter Coffee / Tea',
+                'lunch': 'Traditional South Indian Meals: Steamed Ponni Rice, Murungakkai Sambar, Tomato Rasam, Beans Poriyal, Curd, Crisp Appalam',
+                'evening_snacks': 'Filter Coffee / Tea with Hot Medu Vada (1 pc)',
+                'dinner': 'Soft Phulka / Chapati, Dal Tadka, Steamed Rice, Pepper Rasam, Fresh Buttermilk',
+                'special_dish': '',
+                'is_non_veg_day': False,
+            },
+            {
+                'day_of_week': 'Tuesday',
+                'breakfast': 'Rava Kichadi / Upma, Sambar, Roasted Gram Chutney, Filter Coffee / Tea',
+                'lunch': 'Steamed Rice, Vendakkai Mor Kulambu (Buttermilk Gravy), Garlic Rasam, Crispy Potato Roast, Curd, Papad',
+                'evening_snacks': 'Filter Coffee / Tea with Onion / Potato Bajji',
+                'dinner': 'South Indian Ghee Roast Dosa, Tomato Onion Chutney, Sambar, Steamed Rice, Rasam, Milk',
+                'special_dish': '',
+                'is_non_veg_day': False,
+            },
+            {
+                'day_of_week': 'Wednesday',
+                'breakfast': 'Ven Pongal with Ghee & Cashews, Medu Vada, Sambar, Coconut Chutney, Filter Coffee / Tea',
+                'lunch': '🍗 WEDNESDAY SPECIAL NON-VEG: Flavourful Chicken Biryani, Boiled Egg, Onion Raitha, Ennai Kathirikai Salna (Veg Alternative: Paneer Dum Biryani) + Steamed White Rice, Tomato Rasam',
+                'evening_snacks': 'Filter Coffee / Tea with Hot Crispy Onion Pakoda',
+                'dinner': 'Soft Chapati (3 pcs), Vegetable Salna, Steamed Rice, Jeera Rasam, Chilled Buttermilk',
+                'special_dish': '🍗 Chicken Biryani & Onion Raitha (Wed Lunch)',
+                'is_non_veg_day': True,
+            },
+            {
+                'day_of_week': 'Thursday',
+                'breakfast': 'Crispy Plain / Masala Dosa, Vegetable Sambar, Mint Coriander Chutney, Filter Coffee / Tea',
+                'lunch': 'Steamed Rice, Sundakkai Vatha Kulambu, Pepper Rasam, Cabbage & Chana Dal Poriyal, Curd, Fried Appalam',
+                'evening_snacks': 'Filter Coffee / Tea with Masala Vada',
+                'dinner': 'Idiyappam with Coconut Milk / Vegetable Kurma, Steamed Rice, Tomato Rasam, Milk',
+                'special_dish': '',
+                'is_non_veg_day': False,
+            },
+            {
+                'day_of_week': 'Friday',
+                'breakfast': 'Poori Masala (3 pcs), Potato Sagoo, Coconut Chutney, Filter Coffee / Tea',
+                'lunch': 'South Indian Festival Meals: Steamed Rice, Paruppu & Ghee, Mixed Veg Sambar, Pineapple Rasam, Aviyal, Curd, Payasam (Sweet), Appalam',
+                'evening_snacks': 'Filter Coffee / Tea with Navadhanya Sundal',
+                'dinner': 'Soft Chapati, Paneer Butter Masala, Steamed Rice, Rasam, Fresh Buttermilk',
+                'special_dish': 'Special Friday Payasam (Sweet)',
+                'is_non_veg_day': False,
+            },
+            {
+                'day_of_week': 'Saturday',
+                'breakfast': 'Semiya Upma / Rava Dosa, Tomato Chutney, Sambar, Filter Coffee / Tea',
+                'lunch': 'South Indian Variety Rice: Lemon Rice, Curd Rice with Pomegranate, Spicy Potato Fry, Pickle, Appalam',
+                'evening_snacks': 'Filter Coffee / Tea with Veg Samosa',
+                'dinner': 'Soft Uthappam with Sambar & Kara Chutney, Steamed Rice, Rasam, Milk',
+                'special_dish': '',
+                'is_non_veg_day': False,
+            },
+            {
+                'day_of_week': 'Sunday',
+                'breakfast': 'Crispy Kal Dosa, Tiffin Sambar, Peanut Chutney, Filter Coffee / Tea',
+                'lunch': '🍗 SUNDAY SPECIAL NON-VEG: Spicy Chettinad Chicken Curry, Boiled Egg, Steamed Ponni Rice, Pepper Jeera Rasam, Thick Curd (Veg Alternative: Mushroom Chettinad Gravy)',
+                'evening_snacks': 'Filter Coffee / Tea with Sweet Biscuit / Mixture',
+                'dinner': 'Soft Chapati, Mixed Vegetable Kurma, Steamed Rice, Rasam, Warm Sweet Milk',
+                'special_dish': '🍗 Chettinad Chicken Curry & Egg (Sun Lunch)',
+                'is_non_veg_day': True,
+            },
+        ]
+
+        for m_data in mess_menu_data:
+            MessMenu.objects.update_or_create(
+                day_of_week=m_data['day_of_week'],
+                defaults=m_data
+            )
+        self.stdout.write(self.style.SUCCESS("Configured South Indian 7-day weekly mess menu with Wed & Sun Non-Veg specials."))
+
+        # 8. Create Sample Leave Requests
+        today = datetime.date.today()
+        stu1 = created_students.get('STU001')
+        stu3 = created_students.get('STU003')
+
+        if stu1:
+            LeaveRequest.objects.update_or_create(
+                leave_id='LEV-0001',
+                defaults={
+                    'student': stu1,
+                    'leave_type': 'Home Leave',
+                    'start_date': today + datetime.timedelta(days=1),
+                    'end_date': today + datetime.timedelta(days=4),
+                    'destination': 'Chennai, Tamil Nadu (Home Visit)',
+                    'emergency_contact': '9876543210',
+                    'reason': 'Visiting parents for family festival function.',
+                    'status': 'Approved',
+                    'warden_remarks': 'Parent verified over phone call. Gate pass authorized for exit.'
+                }
+            )
+
+        if stu3:
+            LeaveRequest.objects.update_or_create(
+                leave_id='LEV-0002',
+                defaults={
+                    'student': stu3,
+                    'leave_type': 'Day Outing',
+                    'start_date': today,
+                    'end_date': today,
+                    'destination': 'Central City Library & Book Fair',
+                    'emergency_contact': '9876543212',
+                    'reason': 'Visiting university library to collect research project reference materials.',
+                    'status': 'Pending',
+                    'warden_remarks': ''
+                }
+            )
+        self.stdout.write(self.style.SUCCESS("Configured sample student leave requests and approved gate pass."))
+
+        self.stdout.write(self.style.SUCCESS("All sample data populated successfully!"))
         self.stdout.write(self.style.SUCCESS("=" * 60))
         self.stdout.write(self.style.SUCCESS("Admin login:    admin    / admin123"))
         self.stdout.write(self.style.SUCCESS("Warden login:   warden   / warden123"))
-        self.stdout.write(self.style.SUCCESS("Student login:  STU001   / student123 (Rahul Sharma)"))
+        self.stdout.write(self.style.SUCCESS("Student login:  STU001   / student123 (Rahul Sharma - Gate Pass Ready!)"))
         self.stdout.write(self.style.SUCCESS("Student login:  STU003   / student123 (Priya Patel)"))
         self.stdout.write(self.style.SUCCESS("=" * 60))
+

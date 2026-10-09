@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Leave &amp; Gate Passes - Hostel Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="fw-bold mb-1 text-primary">Student Leave &amp; Gate Pass Management</h2>
+        <p class="text-muted mb-0">Review student outing applications, authorize leaves, and issue digital gate passes (Total: {{ total_count }})</p>
+    </div>
+    {% if pending_count > 0 %}
+        <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fs-6 shadow-sm">
+            <i class="bi bi-hourglass-split me-1"></i> {{ pending_count }} Pending Approvals
+        </span>
+    {% endif %}
+</div>
+
+<!-- Search & Filter Card -->
+<div class="custom-card p-3 mb-4">
+    <form method="GET" class="row g-2 align-items-center">
+        <div class="col-12 col-md-4">
+            <div class="input-group">
+                <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+                <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search by student, pass ID, destination...">
+            </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <select name="status" class="form-select">
+                <option value="">All Statuses</option>
+                {% for code, label in status_choices %}
+                    <option value="{{ code }}" {% if selected_status == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <select name="leave_type" class="form-select">
+                <option value="">All Leave Types</option>
+                {% for code, label in leave_types %}
+                    <option value="{{ code }}" {% if selected_type == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-12 col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary w-100 rounded-3">Filter</button>
+            <a href="{% url 'leave_list' %}" class="btn btn-outline-secondary rounded-3" title="Reset Filters"><i class="bi bi-arrow-counterclockwise"></i></a>
+        </div>
+    </form>
+</div>
+
+<!-- Leave Requests Table -->
+<div class="custom-card">
+    <div class="table-responsive">
+        <table class="table table-hover table-custom mb-0">
+            <thead>
+                <tr>
+                    <th>Pass ID</th>
+                    <th>Student Details</th>
+                    <th>Leave Type</th>
+                    <th>Dates (From - To)</th>
+                    <th>Destination &amp; Contact</th>
+                    <th>Status</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for l in leaves %}
+                <tr>
+                    <td><strong class="text-secondary">{{ l.leave_id }}</strong></td>
+                    <td>
+                        <a href="{% url 'student_detail' l.student.pk %}" class="fw-bold text-decoration-none text-dark">
+                            {{ l.student.name }}
+                        </a>
+                        <small class="d-block text-muted">
+                            ID: {{ l.student.student_id }} &bull;
+                            {% if l.student.room %}
+                                Room {{ l.student.room.room_number }}
+                            {% else %}
+                                No Room
+                            {% endif %}
+                        </small>
+                    </td>
+                    <td><span class="badge bg-light text-dark border">{{ l.leave_type }}</span></td>
+                    <td>
+                        <strong class="text-dark">{{ l.start_date|date:"M d, Y" }}</strong><br>
+                        <small class="text-muted">Return: {{ l.end_date|date:"M d, Y" }}</small>
+                    </td>
+                    <td>
+                        <div class="fw-semibold text-dark"><i class="bi bi-geo-alt text-danger me-1 small"></i>{{ l.destination }}</div>
+                        <small class="text-muted"><i class="bi bi-telephone me-1 small"></i>{{ l.emergency_contact }}</small>
+                    </td>
+                    <td>
+                        {% if l.status == 'Pending' %}
+                            <span class="badge badge-pending px-2 py-1 rounded-pill"><i class="bi bi-clock me-1"></i>Pending</span>
+                        {% elif l.status == 'Approved' %}
+                            <span class="badge badge-resolved px-2 py-1 rounded-pill"><i class="bi bi-check2-circle me-1"></i>Approved</span>
+                        {% else %}
+                            <span class="badge badge-rejected px-2 py-1 rounded-pill"><i class="bi bi-x-circle me-1"></i>Rejected</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <a href="{% url 'leave_detail' l.pk %}" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
+                            <i class="bi bi-pencil-square me-1"></i> Review
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <i class="bi bi-ticket-perforated fs-1 d-block mb-2 text-secondary"></i>
+                        No student leave or gate pass requests found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

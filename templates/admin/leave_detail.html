@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}Review Leave Request {{ leave.leave_id }} - Hostel Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <a href="{% url 'leave_list' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 mb-2">
+            <i class="bi bi-arrow-left me-1"></i> Back to Leave Requests
+        </a>
+        <h2 class="fw-bold mb-0 text-primary">Review Leave Request {{ leave.leave_id }}</h2>
+        <span class="text-muted">Applied on {{ leave.applied_at|date:"F d, Y \a\\t H:i" }}</span>
+    </div>
+    <div>
+        {% if leave.status == 'Pending' %}
+            <span class="badge badge-pending px-3 py-2 rounded-pill fs-6"><i class="bi bi-clock me-1"></i>Pending Decision</span>
+        {% elif leave.status == 'Approved' %}
+            <span class="badge badge-resolved px-3 py-2 rounded-pill fs-6"><i class="bi bi-check2-circle me-1"></i>Approved (Gate Pass Issued)</span>
+        {% else %}
+            <span class="badge badge-rejected px-3 py-2 rounded-pill fs-6"><i class="bi bi-x-circle me-1"></i>Rejected</span>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Leave Request & Student Info -->
+    <div class="col-12 col-lg-7">
+        <div class="custom-card mb-4">
+            <div class="card-header-custom d-flex justify-content-between align-items-center">
+                <span class="fw-bold"><i class="bi bi-ticket-perforated-fill text-primary me-2"></i>Application Details</span>
+                <span class="badge bg-light text-dark border">{{ leave.leave_type }}</span>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.75rem;">Departure Date</small>
+                        <h5 class="fw-bold text-success mb-0"><i class="bi bi-calendar-event me-1"></i>{{ leave.start_date|date:"F d, Y" }}</h5>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.75rem;">Expected Return Date</small>
+                        <h5 class="fw-bold text-primary mb-0"><i class="bi bi-calendar-check me-1"></i>{{ leave.end_date|date:"F d, Y" }}</h5>
+                    </div>
+                    <div class="col-12">
+                        <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.75rem;">Visiting Destination</small>
+                        <strong class="text-dark fs-6"><i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ leave.destination }}</strong>
+                    </div>
+                    <div class="col-12">
+                        <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.75rem;">Emergency Parent / Guardian Contact</small>
+                        <strong class="text-dark fs-6"><i class="bi bi-telephone-fill text-success me-1"></i>{{ leave.emergency_contact }}</strong>
+                        <span class="text-muted small ms-2">(Verify prior to sanctioning home leave)</span>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-light rounded-3 border">
+                    <h6 class="fw-bold text-uppercase small text-muted mb-2">Student's Stated Reason:</h6>
+                    <p class="text-dark mb-0" style="white-space: pre-wrap; line-height: 1.6;">{{ leave.reason }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Summary -->
+        <div class="custom-card">
+            <div class="card-header-custom">
+                <span class="fw-bold"><i class="bi bi-person-badge-fill text-primary me-2"></i>Applicant Student Information</span>
+            </div>
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div>
+                        <h5 class="fw-bold mb-0">
+                            <a href="{% url 'student_detail' leave.student.pk %}" class="text-decoration-none">
+                                {{ leave.student.name }}
+                            </a>
+                        </h5>
+                        <small class="text-muted">Student ID: <code>{{ leave.student.student_id }}</code></small>
+                    </div>
+                    <span class="badge bg-primary">{{ leave.student.department }} ({{ leave.student.year }})</span>
+                </div>
+
+                <div class="row g-2 small">
+                    <div class="col-6 text-muted">Allocated Room:</div>
+                    <div class="col-6 fw-semibold">
+                        {% if leave.student.room %}
+                            Room {{ leave.student.room.room_number }} ({{ leave.student.room.block }})
+                        {% else %}
+                            <span class="text-danger">No Room Assigned</span>
+                        {% endif %}
+                    </div>
+                    <div class="col-6 text-muted">Student Mobile:</div>
+                    <div class="col-6 fw-semibold">{{ leave.student.phone }}</div>
+                    <div class="col-6 text-muted">Email Address:</div>
+                    <div class="col-6 fw-semibold">{{ leave.student.email }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Warden Decision Form -->
+    <div class="col-12 col-lg-5">
+        <div class="custom-card shadow-sm">
+            <div class="card-header-custom bg-white border-bottom">
+                <h5 class="fw-bold mb-0 text-primary">
+                    <i class="bi bi-shield-lock-fill me-2"></i>Warden Action &amp; Authorization
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="{{ form.status.id_for_label }}" class="form-label fw-semibold">
+                            Gate Pass Decision <span class="text-danger">*</span>
+                        </label>
+                        {{ form.status }}
+                        {% if form.status.errors %}
+                            <div class="text-danger small mt-1">{{ form.status.errors|first }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.warden_remarks.id_for_label }}" class="form-label fw-semibold">
+                            Warden Remarks &amp; Gate Instructions
+                        </label>
+                        {{ form.warden_remarks }}
+                        {% if form.warden_remarks.errors %}
+                            <div class="text-danger small mt-1">{{ form.warden_remarks.errors|first }}</div>
+                        {% endif %}
+                        <div class="form-text">
+                            e.g., "Parent contacted and verified. Authorized for gate exit."
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary rounded-3 fw-bold py-2 shadow-sm">
+                            <i class="bi bi-check2-circle me-1"></i> Update Decision &amp; Issue Gate Pass
+                        </button>
+                    </div>
+                </form>
+
+                <hr class="my-4">
+
+                <div class="p-3 bg-light rounded-3 small text-muted">
+                    <strong class="d-block text-dark mb-1"><i class="bi bi-info-circle me-1"></i>Automatic Workflow:</strong>
+                    Selecting <strong>Approved</strong> immediately creates a valid printable Digital Gate Pass on the student's portal, authorized for security guards at the main gate.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

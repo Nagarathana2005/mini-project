@@ -95,6 +95,16 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a href="{% url 'leave_list' %}" class="nav-link {% if 'leave' in request.resolver_match.url_name %}active{% endif %}">
+                                    <i class="bi bi-ticket-perforated-fill"></i> Leave / Gate Passes
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{% url 'mess_menu_view' %}" class="nav-link {% if 'mess' in request.resolver_match.url_name %}active{% endif %}">
+                                    <i class="bi bi-egg-fried"></i> Hostel Mess &amp; Menu
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a href="{% url 'hostel_stats' %}" class="nav-link {% if request.resolver_match.url_name == 'hostel_stats' %}active{% endif %}">
                                     <i class="bi bi-pie-chart-fill"></i> Statistics
                                 </a>
@@ -120,6 +130,16 @@
                             <li class="nav-item">
                                 <a href="{% url 'student_room' %}" class="nav-link {% if request.resolver_match.url_name == 'student_room' %}active{% endif %}">
                                     <i class="bi bi-door-closed-fill"></i> My Room Details
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{% url 'mess_menu_view' %}" class="nav-link {% if 'mess' in request.resolver_match.url_name %}active{% endif %}">
+                                    <i class="bi bi-egg-fried"></i> Hostel Mess &amp; Menu
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{% url 'my_leaves' %}" class="nav-link {% if 'leave' in request.resolver_match.url_name %}active{% endif %}">
+                                    <i class="bi bi-ticket-perforated-fill"></i> Leave / Gate Pass
                                 </a>
                             </li>
                             <li class="nav-item">

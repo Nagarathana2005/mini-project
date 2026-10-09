@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Room, Student, Complaint
+from .models import Room, Student, Complaint, LeaveRequest, MessMenu
 
 
 @admin.register(Room)
@@ -27,3 +27,20 @@ class ComplaintAdmin(admin.ModelAdmin):
     search_fields = ('complaint_id', 'subject', 'student__student_id', 'student__name', 'description')
     ordering = ('-date',)
     readonly_fields = ('complaint_id', 'date', 'updated_at')
+
+
+@admin.register(LeaveRequest)
+class LeaveRequestAdmin(admin.ModelAdmin):
+    list_display = ('leave_id', 'student', 'leave_type', 'start_date', 'end_date', 'destination', 'status')
+    list_filter = ('status', 'leave_type', 'start_date')
+    search_fields = ('leave_id', 'student__name', 'student__student_id', 'destination', 'reason')
+    ordering = ('-applied_at',)
+    readonly_fields = ('leave_id', 'applied_at', 'updated_at')
+
+
+@admin.register(MessMenu)
+class MessMenuAdmin(admin.ModelAdmin):
+    list_display = ('day_of_week', 'special_dish', 'is_non_veg_day', 'updated_at')
+    list_filter = ('is_non_veg_day',)
+    search_fields = ('day_of_week', 'special_dish', 'lunch', 'breakfast')
+

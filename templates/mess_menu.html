@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+
+{% block title %}Weekly South Indian Mess Menu - Hostel Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="fw-bold mb-1 text-primary">
+            <i class="bi bi-egg-fried text-warning me-2"></i>Weekly Hostel Mess &amp; Food Menu
+        </h2>
+        <p class="text-muted mb-0">Authentic South Indian Cuisine &bull; Non-Veg Specials on Wednesday &amp; Sunday Lunch</p>
+    </div>
+    <div>
+        <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fs-6 shadow-sm">
+            <i class="bi bi-fire me-1 text-danger"></i> 🍗 Non-Veg Days: Wednesday &amp; Sunday Lunch
+        </span>
+    </div>
+</div>
+
+<!-- Mess Timings & Notice Banner -->
+<div class="custom-card p-3 mb-4 bg-white shadow-sm border-start border-4 border-primary">
+    <div class="row align-items-center g-3 text-center text-md-start">
+        <div class="col-12 col-md-3">
+            <span class="text-uppercase fw-bold text-muted small d-block">Hostel Mess Timings</span>
+            <strong class="text-primary fs-6">Dining Hall Schedule</strong>
+        </div>
+        <div class="col-6 col-md-2 border-start">
+            <small class="text-muted d-block">Breakfast</small>
+            <span class="fw-semibold text-dark">07:30 AM - 09:00 AM</span>
+        </div>
+        <div class="col-6 col-md-2 border-start">
+            <small class="text-muted d-block">Lunch</small>
+            <span class="fw-semibold text-dark">12:30 PM - 02:00 PM</span>
+        </div>
+        <div class="col-6 col-md-2 border-start">
+            <small class="text-muted d-block">Snacks &amp; Tea</small>
+            <span class="fw-semibold text-dark">05:00 PM - 06:00 PM</span>
+        </div>
+        <div class="col-6 col-md-3 border-start">
+            <small class="text-muted d-block">Dinner</small>
+            <span class="fw-semibold text-dark">07:30 PM - 09:30 PM</span>
+        </div>
+    </div>
+</div>
+
+<!-- Today's Special Meal Highlight Card -->
+{% if today_menu %}
+<div class="custom-card p-4 mb-4 border-2 {% if today_menu.is_non_veg_day %}border-danger bg-danger bg-opacity-10{% else %}border-primary bg-primary bg-opacity-10{% endif %}">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-dark px-3 py-2 rounded-pill fs-6">TODAY: {{ today_name }}</span>
+            {% if today_menu.is_non_veg_day %}
+                <span class="badge bg-danger px-3 py-2 rounded-pill fs-6">🍗 Non-Veg Feast Day!</span>
+            {% else %}
+                <span class="badge bg-success px-3 py-2 rounded-pill fs-6">🌿 Pure Vegetarian Special</span>
+            {% endif %}
+        </div>
+        {% if user.is_staff or user.is_superuser %}
+            <a href="{% url 'mess_menu_edit' today_menu.pk %}" class="btn btn-sm btn-outline-primary rounded-pill">
+                <i class="bi bi-pencil me-1"></i> Edit Today's Menu
+            </a>
+        {% endif %}
+    </div>
+
+    <div class="row g-3">
+        <div class="col-12 col-md-3">
+            <div class="p-3 bg-white rounded-3 shadow-sm h-100">
+                <span class="badge bg-warning text-dark mb-2">Breakfast</span>
+                <p class="mb-0 small text-dark fw-semibold">{{ today_menu.breakfast }}</p>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="p-3 bg-white rounded-3 shadow-sm h-100 border-2 {% if today_menu.is_non_veg_day %}border border-danger{% endif %}">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge bg-primary">Lunch</span>
+                    {% if today_menu.is_non_veg_day %}
+                        <span class="badge bg-danger">🍗 Special</span>
+                    {% endif %}
+                </div>
+                <p class="mb-0 small text-dark fw-semibold">{{ today_menu.lunch }}</p>
+                {% if today_menu.special_dish %}
+                    <div class="mt-2 pt-2 border-top small text-danger fw-bold">
+                        <i class="bi bi-star-fill text-warning me-1"></i> {{ today_menu.special_dish }}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="p-3 bg-white rounded-3 shadow-sm h-100">
+                <span class="badge bg-info text-dark mb-2">Evening Snacks</span>
+                <p class="mb-0 small text-dark fw-semibold">{{ today_menu.evening_snacks }}</p>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="p-3 bg-white rounded-3 shadow-sm h-100">
+                <span class="badge bg-dark mb-2">Dinner</span>
+                <p class="mb-0 small text-dark fw-semibold">{{ today_menu.dinner }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Full 7-Day Weekly South Indian Timetable -->
+<div class="custom-card shadow-sm">
+    <div class="card-header-custom d-flex justify-content-between align-items-center">
+        <span class="fw-bold fs-6">
+            <i class="bi bi-calendar3-week text-primary me-2"></i>Full 7-Day Weekly South Indian Mess Schedule
+        </span>
+        <span class="text-muted small">Updated Weekly by Chief Warden</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover table-custom mb-0">
+            <thead>
+                <tr>
+                    <th style="width: 14%;">Day</th>
+                    <th style="width: 20%;">Breakfast (07:30 - 09:00)</th>
+                    <th style="width: 26%;">Lunch (12:30 - 14:00)</th>
+                    <th style="width: 18%;">Evening Snacks (17:00 - 18:00)</th>
+                    <th style="width: 22%;">Dinner (19:30 - 21:30)</th>
+                    {% if user.is_staff or user.is_superuser %}
+                        <th class="text-end">Action</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in menus %}
+                <tr class="{% if m.day_of_week == today_name %}table-primary table-opacity-10{% elif m.is_non_veg_day %}table-light{% endif %}">
+                    <td>
+                        <strong class="text-dark fs-6">{{ m.day_of_week }}</strong>
+                        {% if m.day_of_week == today_name %}
+                            <span class="badge bg-primary d-block mt-1">Today</span>
+                        {% endif %}
+                        {% if m.is_non_veg_day %}
+                            <span class="badge bg-danger d-block mt-1">
+                                <i class="bi bi-egg-fill me-1"></i>Non-Veg
+                            </span>
+                        {% else %}
+                            <span class="badge bg-success bg-opacity-25 text-success d-block mt-1">Veg</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="small fw-semibold text-dark">{{ m.breakfast }}</div>
+                    </td>
+                    <td>
+                        <div class="small fw-semibold text-dark">{{ m.lunch }}</div>
+                        {% if m.special_dish %}
+                            <div class="p-2 mt-2 rounded bg-warning bg-opacity-15 border border-warning small text-danger fw-bold">
+                                <i class="bi bi-award-fill text-warning me-1"></i>{{ m.special_dish }}
+                            </div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="small fw-semibold text-dark">{{ m.evening_snacks }}</div>
+                    </td>
+                    <td>
+                        <div class="small fw-semibold text-dark">{{ m.dinner }}</div>
+                    </td>
+                    {% if user.is_staff or user.is_superuser %}
+                        <td class="text-end">
+                            <a href="{% url 'mess_menu_edit' m.pk %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                <i class="bi bi-pencil me-1"></i> Edit
+                            </a>
+                        </td>
+                    {% endif %}
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-5">
+                        <i class="bi bi-egg-fried fs-1 d-block mb-2 text-secondary"></i>
+                        Mess menu has not been populated yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Mess Rules & Guidelines Card -->
+<div class="mt-4 p-4 bg-white rounded-3 border custom-card">
+    <h5 class="fw-bold text-dark mb-2">
+        <i class="bi bi-info-circle-fill text-primary me-2"></i>Hostel Mess Rules &amp; Information
+    </h5>
+    <div class="row g-3 small text-muted">
+        <div class="col-12 col-md-6">
+            <ul class="mb-0 ps-3">
+                <li class="mb-1"><strong>Wednesday Afternoon:</strong> Chicken Biryani is served with Onion Raitha and Brinjal Gravy. Pure veg students receive fresh Paneer Biryani.</li>
+                <li class="mb-1"><strong>Sunday Lunch:</strong> Special Chicken Curry with Steamed Rice, Boiled Egg, and Rasam. Veg alternative is Mushroom / Paneer Curry.</li>
+                <li>Filter coffee and tea are served fresh daily in the morning and evening.</li>
+            </ul>
+        </div>
+        <div class="col-12 col-md-6">
+            <ul class="mb-0 ps-3">
+                <li class="mb-1">Wastage of food is strictly prohibited in the dining hall.</li>
+                <li class="mb-1">Students must adhere strictly to dining hall timings. Late plates are not accommodated except with prior warden approval.</li>
+                <li>For any food quality feedback, students can submit a grievance under the <strong>Food / Mess</strong> category.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}My Leave &amp; Gate Passes - Hostel Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="fw-bold mb-1 text-primary">My Leave Requests &amp; Gate Passes</h2>
+        <p class="text-muted mb-0">Track application status, warden approvals, and view digital gate passes</p>
+    </div>
+    <a href="{% url 'apply_leave' %}" class="btn btn-primary rounded-pill px-3 shadow-sm">
+        <i class="bi bi-plus-circle me-1"></i> Apply for Gate Pass
+    </a>
+</div>
+
+<!-- Filter by Status -->
+<div class="custom-card p-3 mb-4">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+        <span class="fw-semibold small text-muted">Filter by Status:</span>
+        <a href="{% url 'my_leaves' %}" class="btn btn-sm {% if not selected_status %}btn-primary{% else %}btn-outline-secondary{% endif %} rounded-pill px-3">
+            All ({{ student.leave_requests.count }})
+        </a>
+        <a href="{% url 'my_leaves' %}?status=Pending" class="btn btn-sm {% if selected_status == 'Pending' %}btn-warning text-dark{% else %}btn-outline-warning text-dark{% endif %} rounded-pill px-3">
+            Pending
+        </a>
+        <a href="{% url 'my_leaves' %}?status=Approved" class="btn btn-sm {% if selected_status == 'Approved' %}btn-success{% else %}btn-outline-success{% endif %} rounded-pill px-3">
+            Approved (Gate Pass Ready)
+        </a>
+        <a href="{% url 'my_leaves' %}?status=Rejected" class="btn btn-sm {% if selected_status == 'Rejected' %}btn-danger{% else %}btn-outline-danger{% endif %} rounded-pill px-3">
+            Rejected
+        </a>
+    </div>
+</div>
+
+<!-- Leave Requests Table -->
+<div class="custom-card">
+    <div class="table-responsive">
+        <table class="table table-hover table-custom mb-0">
+            <thead>
+                <tr>
+                    <th>Pass ID</th>
+                    <th>Type</th>
+                    <th>Dates (From - To)</th>
+                    <th>Destination &amp; Reason</th>
+                    <th>Status</th>
+                    <th>Warden Response</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for l in leaves %}
+                <tr>
+                    <td><strong class="text-secondary">{{ l.leave_id }}</strong></td>
+                    <td><span class="badge bg-light text-dark border">{{ l.leave_type }}</span></td>
+                    <td>
+                        <strong class="text-dark">{{ l.start_date|date:"M d, Y" }}</strong><br>
+                        <small class="text-muted">To: {{ l.end_date|date:"M d, Y" }}</small>
+                    </td>
+                    <td>
+                        <div class="fw-semibold text-dark"><i class="bi bi-geo-alt text-danger me-1 small"></i>{{ l.destination }}</div>
+                        <small class="text-muted text-truncate d-inline-block" style="max-width: 220px;">{{ l.reason }}</small>
+                    </td>
+                    <td>
+                        {% if l.status == 'Pending' %}
+                            <span class="badge badge-pending px-2 py-1 rounded-pill"><i class="bi bi-clock me-1"></i>Pending</span>
+                        {% elif l.status == 'Approved' %}
+                            <span class="badge badge-resolved px-2 py-1 rounded-pill"><i class="bi bi-check2-circle me-1"></i>Approved</span>
+                        {% else %}
+                            <span class="badge badge-rejected px-2 py-1 rounded-pill"><i class="bi bi-x-circle me-1"></i>Rejected</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if l.warden_remarks %}
+                            <small class="text-dark fw-semibold"><i class="bi bi-chat-quote me-1 text-primary"></i>{{ l.warden_remarks|truncatechars:35 }}</small>
+                        {% else %}
+                            <small class="text-muted italic">Awaiting review...</small>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        {% if l.status == 'Approved' %}
+                            <a href="{% url 'leave_detail_student' l.pk %}" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm">
+                                <i class="bi bi-ticket-perforated-fill me-1"></i> View Gate Pass
+                            </a>
+                        {% else %}
+                            <a href="{% url 'leave_detail_student' l.pk %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                View Details
+                            </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <i class="bi bi-ticket-perforated fs-1 d-block mb-2 text-secondary"></i>
+                        No leave or gate pass requests found.
+                        <div class="mt-2">
+                            <a href="{% url 'apply_leave' %}" class="btn btn-sm btn-primary rounded-pill">Apply for Leave</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

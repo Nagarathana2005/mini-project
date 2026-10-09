@@ -278,3 +278,44 @@ class FullWorkflowTests(TestCase):
         self.assertEqual(complaint.status, 'Resolved')
         self.assertEqual(complaint.admin_response, 'Router rebooted and firmware updated.')
 
+    def test_mess_menu_view_renders(self):
+        self.client.login(username="STU001", password="password123")
+        response = self.client.get(reverse('mess_menu_view'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Weekly Hostel Mess")
+
+    def test_student_apply_leave_and_gate_pass_flow(self):
+        import datetime
+        self.client.login(username="STU001", password="password123")
+        today = datetime.date.today()
+        response = self.client.post(reverse('apply_leave'), {
+            'leave_type': 'Home Leave',
+            'start_date': today,
+            'end_date': today + datetime.timedelta(days=2),
+            'destination': 'Coimbatore',
+            'emergency_contact': '9876543210',
+            'reason': 'Family function'
+        })
+        self.assertRedirects(response, reverse('my_leaves'))
+        from hostel.models import LeaveRequest
+        leave = LeaveRequest.objects.filter(student=self.student).first()
+        self.assertIsNotNone(leave)
+        self.assertEqual(leave.status, 'Pending')
+
+        # Admin approves the leave
+        self.client.login(username="admin", password="password123")
+        response = self.client.post(reverse('leave_detail', kwargs={'pk': leave.pk}), {
+            'status': 'Approved',
+            'warden_remarks': 'Approved by Chief Warden'
+        })
+        self.assertRedirects(response, reverse('leave_detail', kwargs={'pk': leave.pk}))
+        leave.refresh_from_db()
+        self.assertEqual(leave.status, 'Approved')
+
+        # Student views gate pass
+        self.client.login(username="STU001", password="password123")
+        response = self.client.get(reverse('leave_detail_student', kwargs={'pk': leave.pk}))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Official Digital Gate Pass")
+
+

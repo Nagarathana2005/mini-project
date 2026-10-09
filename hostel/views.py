@@ -1,3 +1,4 @@
+import datetime
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -5,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q, Count
 
-from .models import Room, Student, Complaint
+from .models import Room, Student, Complaint, LeaveRequest, MessMenu
 from .forms import (
     LoginForm,
     RoomForm,
@@ -13,6 +14,9 @@ from .forms import (
     StudentEditForm,
     ComplaintForm,
     ComplaintResponseForm,
+    LeaveRequestForm,
+    LeaveActionForm,
+    MessMenuForm,
 )
 from .decorators import admin_required, student_required
 
@@ -89,6 +93,11 @@ def admin_dashboard(request):
     resolved_complaints = Complaint.objects.filter(status='Resolved').count()
     rejected_complaints = Complaint.objects.filter(status='Rejected').count()
 
+    # Leave requests count
+    pending_leaves = LeaveRequest.objects.filter(status='Pending').count()
+    approved_leaves = LeaveRequest.objects.filter(status='Approved').count()
+    recent_leaves = LeaveRequest.objects.select_related('student', 'student__room').order_by('-applied_at')[:5]
+
     # Calculate overall occupancy percentage
     total_capacity = sum(r.capacity for r in Room.objects.all()) or 1
     total_occupied_beds = sum(r.occupied_count for r in Room.objects.all())
@@ -109,6 +118,9 @@ def admin_dashboard(request):
         'in_progress_complaints': in_progress_complaints,
         'resolved_complaints': resolved_complaints,
         'rejected_complaints': rejected_complaints,
+        'pending_leaves': pending_leaves,
+        'approved_leaves': approved_leaves,
+        'recent_leaves': recent_leaves,
         'total_capacity': total_capacity,
         'total_occupied_beds': total_occupied_beds,
         'overall_occupancy_pct': overall_occupancy_pct,
@@ -576,6 +588,16 @@ def student_dashboard(request):
     if student.room:
         roommates = student.room.students.exclude(pk=student.pk)
 
+    # Leave & Gate Pass metrics
+    pending_leaves_count = student.leave_requests.filter(status='Pending').count()
+    approved_leaves_count = student.leave_requests.filter(status='Approved').count()
+    active_gate_pass = student.leave_requests.filter(status='Approved').order_by('-start_date').first()
+    latest_leave = student.leave_requests.order_by('-applied_at').first()
+
+    # Today's South Indian Mess Menu
+    today_name = datetime.date.today().strftime('%A')
+    today_menu = MessMenu.objects.filter(day_of_week=today_name).first()
+
     context = {
         'student': student,
         'room': student.room,
@@ -585,8 +607,15 @@ def student_dashboard(request):
         'in_progress_count': in_progress_count,
         'resolved_count': resolved_count,
         'recent_complaints': recent_complaints,
+        'pending_leaves_count': pending_leaves_count,
+        'approved_leaves_count': approved_leaves_count,
+        'active_gate_pass': active_gate_pass,
+        'latest_leave': latest_leave,
+        'today_name': today_name,
+        'today_menu': today_menu,
     }
     return render(request, 'student/dashboard.html', context)
+
 
 
 @student_required
@@ -660,3 +689,161 @@ def student_complaint_detail(request, pk):
     complaint = get_object_or_404(Complaint, pk=pk, student=student)
 
     return render(request, 'student/complaint_detail.html', {'complaint': complaint, 'student': student})
+
+
+# ==========================================
+# LEAVE & GATE PASS MANAGEMENT (ADMIN)
+# ==========================================
+
+@admin_required
+def leave_list(request):
+    """View, search, and filter student leave and gate pass requests."""
+    query = request.GET.get('q', '').strip()
+    status = request.GET.get('status', '').strip()
+    leave_type = request.GET.get('leave_type', '').strip()
+
+    leaves = LeaveRequest.objects.select_related('student', 'student__room').all()
+
+    if query:
+        leaves = leaves.filter(
+            Q(leave_id__icontains=query) |
+            Q(student__name__icontains=query) |
+            Q(student__student_id__icontains=query) |
+            Q(destination__icontains=query) |
+            Q(reason__icontains=query)
+        )
+
+    if status:
+        leaves = leaves.filter(status=status)
+
+    if leave_type:
+        leaves = leaves.filter(leave_type=leave_type)
+
+    leave_types = LeaveRequest.LEAVE_TYPE_CHOICES
+    status_choices = LeaveRequest.STATUS_CHOICES
+
+    context = {
+        'leaves': leaves,
+        'query': query,
+        'selected_status': status,
+        'selected_type': leave_type,
+        'leave_types': leave_types,
+        'status_choices': status_choices,
+        'total_count': leaves.count(),
+        'pending_count': LeaveRequest.objects.filter(status='Pending').count(),
+    }
+    return render(request, 'admin/leave_list.html', context)
+
+
+@admin_required
+def leave_detail(request, pk):
+    """View leave request details, student info, and approve or reject."""
+    leave = get_object_or_404(LeaveRequest.objects.select_related('student', 'student__room'), pk=pk)
+
+    if request.method == 'POST':
+        form = LeaveActionForm(request.POST, instance=leave)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Leave request {leave.leave_id} updated to '{leave.status}'.")
+            return redirect('leave_detail', pk=leave.pk)
+    else:
+        form = LeaveActionForm(instance=leave)
+
+    context = {
+        'leave': leave,
+        'form': form,
+    }
+    return render(request, 'admin/leave_detail.html', context)
+
+
+# ==========================================
+# LEAVE & GATE PASS (STUDENT PORTAL)
+# ==========================================
+
+@student_required
+def apply_leave(request):
+    """Student applies for hostel leave / gate pass."""
+    student = request.user.student_profile
+    if request.method == 'POST':
+        form = LeaveRequestForm(request.POST)
+        if form.is_valid():
+            leave = form.save(commit=False)
+            leave.student = student
+            leave.save()
+            messages.success(
+                request,
+                f"Your leave request ({leave.leave_id}) has been submitted! The warden will review and approve it."
+            )
+            return redirect('my_leaves')
+    else:
+        form = LeaveRequestForm()
+
+    return render(request, 'student/apply_leave.html', {'form': form, 'student': student})
+
+
+@student_required
+def my_leaves(request):
+    """View student's leave requests history and gate pass status."""
+    student = request.user.student_profile
+    status_filter = request.GET.get('status', '').strip()
+
+    leaves = student.leave_requests.all()
+    if status_filter:
+        leaves = leaves.filter(status=status_filter)
+
+    context = {
+        'leaves': leaves,
+        'selected_status': status_filter,
+        'student': student,
+    }
+    return render(request, 'student/my_leaves.html', context)
+
+
+@student_required
+def leave_detail_student(request, pk):
+    """View leave details & printable Gate Pass (author-only protection)."""
+    student = request.user.student_profile
+    leave = get_object_or_404(LeaveRequest, pk=pk, student=student)
+
+    return render(request, 'student/leave_detail.html', {'leave': leave, 'student': student})
+
+
+# ==========================================
+# HOSTEL MESS & FOOD MENU VIEWS
+# ==========================================
+
+@login_required
+def mess_menu_view(request):
+    """View weekly South Indian mess menu timetable with Wednesday & Sunday Non-Veg specials."""
+    menus = MessMenu.objects.all().order_by('id')
+    today_name = datetime.date.today().strftime('%A')
+    today_menu = MessMenu.objects.filter(day_of_week=today_name).first()
+
+    context = {
+        'menus': menus,
+        'today_name': today_name,
+        'today_menu': today_menu,
+    }
+    return render(request, 'mess_menu.html', context)
+
+
+@admin_required
+def mess_menu_edit(request, pk):
+    """Warden updates mess menu for a specific day."""
+    menu = get_object_or_404(MessMenu, pk=pk)
+
+    if request.method == 'POST':
+        form = MessMenuForm(request.POST, instance=menu)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Mess menu for {menu.day_of_week} updated successfully.")
+            return redirect('mess_menu_view')
+    else:
+        form = MessMenuForm(instance=menu)
+
+    context = {
+        'form': form,
+        'menu': menu,
+    }
+    return render(request, 'admin/mess_menu_edit.html', context)
+

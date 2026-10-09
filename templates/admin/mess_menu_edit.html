@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Mess Menu for {{ menu.day_of_week }} - Hostel Management System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a href="{% url 'mess_menu_view' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i> Back to Mess Menu
+            </a>
+            <span class="badge bg-primary px-3 py-2 rounded-pill">Menu Configuration</span>
+        </div>
+
+        <div class="custom-card shadow-sm">
+            <div class="card-header-custom bg-white border-bottom py-3">
+                <h4 class="fw-bold mb-0 text-primary">
+                    <i class="bi bi-pencil-square me-2"></i>Edit {{ menu.day_of_week }} Food Menu
+                </h4>
+            </div>
+
+            <div class="card-body p-4">
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ form.non_field_errors }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Day of Week</label>
+                        {{ form.day_of_week }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-sun text-warning me-1"></i> South Indian Breakfast (07:30 - 09:00)
+                        </label>
+                        {{ form.breakfast }}
+                        <div class="form-text">e.g. Idli, Medu Vada, Sambar, Coconut Chutney, Filter Coffee / Tea</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-egg-fried text-primary me-1"></i> Afternoon Lunch (12:30 - 14:00)
+                        </label>
+                        {{ form.lunch }}
+                        <div class="form-text">e.g. Steamed Rice, Murungakkai Sambar, Tomato Rasam, Cabbage Poriyal, Curd, Appalam</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-cup-hot text-danger me-1"></i> Evening Snacks &amp; Beverages (17:00 - 18:00)
+                        </label>
+                        {{ form.evening_snacks }}
+                        <div class="form-text">e.g. Filter Coffee / Tea with Onion Pakoda or Masala Sundal</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-moon-stars text-secondary me-1"></i> Dinner (19:30 - 21:30)
+                        </label>
+                        {{ form.dinner }}
+                        <div class="form-text">e.g. Soft Phulka / Chapati, Vegetable Kurma, Steamed Rice, Rasam, Buttermilk</div>
+                    </div>
+
+                    <div class="p-3 bg-light rounded-3 border mb-4">
+                        <div class="form-check form-switch mb-2">
+                            {{ form.is_non_veg_day }}
+                            <label class="form-check-label fw-bold text-danger ms-2" for="{{ form.is_non_veg_day.id_for_label }}">
+                                🍗 Mark as Non-Veg Special Day (e.g. Wednesday Lunch, Sunday Lunch)
+                            </label>
+                        </div>
+                        <label class="form-label fw-semibold small text-muted">Special Highlight Dish Description:</label>
+                        {{ form.special_dish }}
+                        <div class="form-text small">e.g., "🍗 Chicken Biryani, Raitha, Brinjal Salna (Veg: Paneer Biryani)"</div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'mess_menu_view' %}" class="btn btn-outline-secondary px-4 rounded-3">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4 rounded-3 fw-bold">
+                            <i class="bi bi-check2-circle me-1"></i> Save Menu Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
